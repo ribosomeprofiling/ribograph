@@ -1,0 +1,20 @@
+{% extends "browser/base.html" %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2 fw-semibold mb-0">
+        <a class="text-body"
+           href="{% url 'browser:experiment_details' experiment.id %}">{{ experiment.name }}</a>
+    </p>
+    <p class="fs-4">
+        <a href="{% url 'browser:project_details' project.id %}">{{ project.name }}</a>
+    </p>
+    <p class="fs-5">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% bootstrap_form reference_form %}
+            {% buttons %}
+            <button type="submit" class="btn btn-primary">Update Reference</button>
+        {% endbuttons %}
+    </p>
+    {% include "browser/vue_app.html" %}
+{% endblock body %}

@@ -1,0 +1,15 @@
+{% extends "browser/base.html" %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2">Confirm Ribo File</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form_set.management_form }}
+        {% for form in form_set %}
+            {% bootstrap_form form %}
+        {% endfor %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Confirm</button>
+    {% endbuttons %}
+</form>
+{% endblock body %}

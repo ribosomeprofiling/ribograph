@@ -1,0 +1,12 @@
+{% extends "browser/base.html" %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-3">Let's setup an admin user account for you</p>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Add User</button>
+    {% endbuttons %}
+</form>
+{% endblock body %}

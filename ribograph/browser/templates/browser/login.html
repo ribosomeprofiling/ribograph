@@ -1,0 +1,17 @@
+{% extends "browser/base.html" %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2">Login</p>
+    {% if error_message %}
+        <div class="alert alert-danger">
+            <center>{{ error_message }}</center>
+        </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Login</button>
+    {% endbuttons %}
+</form>
+{% endblock body %}

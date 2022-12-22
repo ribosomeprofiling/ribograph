@@ -1,0 +1,11 @@
+{% extends "browser/base.html" %}
+{% block body %}
+    <p class="fs-2">Delete Project</p>
+    <p class="fs-5">
+        Do you want to delete the project <b>{{ project.name }}?</b>
+    </p>
+    <a class="btn btn-danger"
+       href="{% url 'browser:erase_project' project.id %}">Yes</a>
+    <a class="btn btn-secondary"
+       href="{% url 'browser:project_details' project.id %}">No</a>
+{% endblock body %}

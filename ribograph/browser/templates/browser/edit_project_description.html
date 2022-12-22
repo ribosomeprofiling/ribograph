@@ -1,0 +1,13 @@
+{% extends "browser/base.html" %}
+{% load render_table from django_tables2 %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2">{{ project.name }}</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Save</button>
+    {% endbuttons %}
+</form>
+{% endblock body %}

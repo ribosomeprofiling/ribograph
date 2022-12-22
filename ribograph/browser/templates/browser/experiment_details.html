@@ -1,0 +1,23 @@
+{% extends "browser/base.html" %}
+{% load render_table from django_tables2 %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2 fw-semibold mb-0">{{ experiment.name }}</p>
+    <p class="fs-4">
+        <a href="{% url 'browser:project_details' project.id %}">{{ project.name }}</a>
+    </p>
+    <a href="{% url 'browser:download_ribo' experiment.id %}"
+       class="btn btn-outline-dark mb-3">Download Ribo</a>
+    <a href="{% url 'browser:coverage' experiment.id %}"
+       class="btn btn-outline-dark mb-3">View Coverage</a>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form description_form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-outline-primary">Update Description</button>
+    {% endbuttons %}
+</form>
+{% include "browser/vue_app.html" %}
+<a href="{% url 'browser:delete_experiment' experiment.id %}"
+   class="btn btn-outline-danger mt-4">Delete {{ experiment.name }}</a>
+{% endblock body %}

@@ -1,0 +1,17 @@
+{% extends "browser/base.html" %}
+{% load render_table from django_tables2 %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2 fw-semibold mb-0">{{ reference.name }}</p>
+    <br>
+    <a href="{% url 'browser:download_reference' reference.id %}"
+       class="btn btn-outline-dark mb-3">Download Reference</a>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-outline-primary">Update</button>
+    {% endbuttons %}
+    <a href="{% url 'browser:delete_reference' reference.id %}"
+       class="btn btn-outline-danger mt-4">Delete {{ reference.name }}</a>
+{% endblock body %}

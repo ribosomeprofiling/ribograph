@@ -1,0 +1,19 @@
+{% extends "browser/base.html" %}
+{% load render_table from django_tables2 %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2">Upload Reference File</p>
+    The reference file must be in (gzipped) fasta format with the ".gz" extension.
+    It must be the reference file that was used in the processing pipeline to generate the ribo files of interest.
+    Therefore, the transcript names and their length in the reference file and the ribo file should match exactly.
+    The sequence information in this file will be used in transcript coverage plots.
+    <br>
+    <br>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Upload fasta file</button>
+    {% endbuttons %}
+</form>
+{% endblock body %}

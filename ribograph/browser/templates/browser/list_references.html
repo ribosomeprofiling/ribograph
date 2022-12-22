@@ -1,0 +1,16 @@
+{% extends "browser/base.html" %}
+{% load render_table from django_tables2 %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2">References</p>
+    <br>
+    <a href="{% url 'browser:add_reference'  %}"
+       class="btn btn-outline-primary">New Reference</a>
+    <br>
+    <br>
+    {% if references_exist %}
+        {% render_table reference_table %}
+    {% else %}
+        <p>There are no references.</p>
+    {% endif %}
+{% endblock body %}

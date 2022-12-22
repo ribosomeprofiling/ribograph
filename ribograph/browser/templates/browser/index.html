@@ -1,0 +1,56 @@
+{% extends "browser/base.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% block body %}
+    <p class="fs-2">Projects</p>
+    <p>Use the '+' symbol on the bottom right to add more projects.</p>
+    <br>
+    <a class="btn btn-primary rounded-circle p-0 add-fab"
+       href="{% url 'browser:add_project' %}"
+       data-bs-toggle="tooltip"
+       data-bs-title="Add project">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="32"
+             height="32"
+             viewBox="0 0 24 24">
+            <path fill="white" d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z" />
+        </svg>
+    </a>
+    <script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+    <div class="row">
+        {% for project, experiments in projects.items %}
+            <div class="col-12 col-md-6 col-xl-4 pb-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ project.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            {{ experiments | length }}
+                            {% if experiments|length == 1 %}
+                                experiment
+                            {% else %}
+                                experiments
+                            {% endif %}
+                        </h6>
+                        <p class="card-text flex-grow-1">{{ project.description }}</p>
+                        <a href="{% url 'browser:project_details' project_id=project.id %}"
+                           class="btn btn-outline-primary">Open project</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            {% if request.user.is_authenticated %}
+                <p class="text-muted text-center fs-4">
+                    No projects to see here. <a href="{% url 'browser:add_project' %}">Create a project</a> to start browsing ribo
+                    files.
+                </p>
+            {% else %}
+                <p class="text-muted text-center fs-4">
+                    <a href="{% url 'login_view' %}">Login</a> to create or view projects.
+                </p>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock body %}

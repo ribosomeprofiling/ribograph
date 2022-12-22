@@ -1,0 +1,75 @@
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark h-100"
+     style="width: 280px;">
+    <a href="/"
+       class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <span class="fs-4">RiboGraph</span>
+    </a>
+    <hr/>
+    <ul class="nav nav-pills flex-column sidebar-primary-list">
+        <li class="nav-item">
+            <a href="{% url 'browser:index' %}"
+               class="nav-link {% if request.resolver_match.url_name in "index,project_details,experiment_details,coverage" %}active{% endif %}"
+               aria-current="page">Projects</a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'browser:references' %}"
+               class="nav-link {% if request.resolver_match.url_name in "references,reference_details" %}active{% endif %}"
+               aria-current="page">References</a>
+        </li>
+        <!--<li>
+            <a href="{% url 'browser:index' %}" class="nav-link text-white">Experiments</a>
+        </li>-->
+    </ul>
+    <hr/>
+    <ul class="list-unstyled ps-0 nav nav-pills flex-column flex-nowrap mb-2 mb-auto overflow-auto">
+        {% for current_project, experiments in projects.items %}
+            <li class="mb-1">
+                <button class="btn btn-toggle align-items-center rounded collapsed"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#{{ current_project.name }}-collapse"
+                        aria-expanded="{% if current_project.id == project.id %}true{% else %}false{% endif %}">
+                </button>
+                <a href="{% url 'browser:project_details' project_id=current_project.id %}"
+                   class="btn btn-nav-project align-items-center rounded collapsed">
+                    {{ current_project.name }}
+                </a>
+                <div class="collapse{% if current_project.id == project.id %} show{% endif %}"
+                     id="{{ current_project.name }}-collapse">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                        {% for current_experiment in experiments %}
+                            <li>
+                                <a href="{% url 'browser:experiment_details' experiment_id=current_experiment.id %}"
+                                   class="link-light rounded {% if current_experiment.id == experiment.id %} fw-semibold{% endif %}">
+                                    {{ current_experiment.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    {% if request.user.username %}
+        <hr/>
+        <div class="dropdown">
+            <a href="#"
+               class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+               id="dropdownUser1"
+               data-bs-toggle="dropdown"
+               aria-expanded="false">
+                <strong>{{ request.user.username }}</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow"
+                aria-labelledby="dropdownUser1">
+                {% if request.user.is_superuser %}
+                    <li>
+                        <a class="dropdown-item" href="/admin">Admin Panel</a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a class="dropdown-item" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,18 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.web.json",
+  "include": ["env.d.ts", "ribograph/browser/src/**/*", "ribograph/browser/src/**/*.vue"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["ribograph/browser/src/*"]
+    },
+    "lib": ["ES2021", "DOM", "DOM.Iterable", "ES2020.String"],
+    "types": ["node"]
+  },
+
+  "references": [
+    {
+      "path": "./tsconfig.config.json"
+    }
+  ]
+}
