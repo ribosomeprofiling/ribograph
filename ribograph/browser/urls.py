@@ -5,19 +5,13 @@ from .api import register_experiment_api, register_project_api
 
 app_name = "browser"
 
-
-def camelCase(st):
-    output = "".join(x for x in st.title() if x.isalnum())
-    return output[0].lower() + output[1:]
-
-
 apipatterns = [
-    path(f"api/<int:experiment_id>/{camelCase(endpoint)}", func)
+    path(f"api/<int:experiment_id>/{endpoint}", func)
     for endpoint, func in register_experiment_api.all.items()
 ]
 
 apipatterns += [
-    path(f"api/<int:project_id>/{camelCase(endpoint)}", func)
+    path(f"api/<int:project_id>/{endpoint}", func)
     for endpoint, func in register_project_api.all.items()
 ]
 

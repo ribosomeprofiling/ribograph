@@ -47,15 +47,27 @@ djlint . --reformat
  
 ## Deployment
 ...
- 
+
+## Usage
+After the docker instance is started, on first time use you will be prompted to create an admin user account. After this, you'll be able to add other users through the admin panel, as well as add projects and references.
+
+### QC Plots
+...
+
+### Coverage Plots
+...
+
+### P Site Correction
+Users can select offsets for P Site Correction for each read length. These offsets can then be used for the coverage plot. Offsets for each experiment are kept in the user's browser local storage.
+
+### References
+...
+
 ## Implementation Notes
 RiboGraph is implemented as a Django web app that uses Vue supplementally to provide reactivity on the front-end. During development, both the Django dev server and the hot reloading Vue dev server are run in parallel. During production, the Vue files are built into static assets that are served through Django. This logic is implemented in the [vue_app](ribograph/browser/templates/browser/vue_app.html) Django template.
  
 ### Django HTTPS API
 The Vue app interfaces with the Django backend through [a series of HTTPS APIs](ribograph/browser/api.py). These APIs provide the front-end with the data required to render the charts. Results are cached for around 10 minutes for faster results and a smoother user experience.
- 
-### P Site Correction
-...
  
 ### Reference Compatibility
  
