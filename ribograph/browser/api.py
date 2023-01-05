@@ -23,6 +23,13 @@ from ribopy import Ribo
 from ribopy.core.get_gadgets import get_region_boundaries, get_reference_names
 import time
 
+def camelCase(st: str):
+    """
+    Convert a given string to camelCase
+    """
+    output = "".join(x for x in st.title() if x.isalnum())
+    return output[0].lower() + output[1:]
+
 @cached(cache=TTLCache(maxsize=64, ttl=300))
 def get_ribo(experiment: Experiment) -> Ribo:
     """
@@ -43,6 +50,11 @@ def request_key(*args, **kwargs):
 
 
 def make_experiment_api_registrar():
+    """
+    Returns a decorator that wraps experiment level APIs. This decorater
+    centralizes some common logic, including getting the ribo and experiment 
+    objects, authenticating requests, and caching responses.
+    """
     registry = {}
 
     def registrar(func):
@@ -73,7 +85,7 @@ def make_experiment_api_registrar():
 
             return wrapper
 
-        registry[func.__name__] = api_decorator(func)
+        registry[camelCase(func.__name__)] = api_decorator(func)
         return api_decorator(func)
 
     registrar.all = registry
@@ -81,6 +93,11 @@ def make_experiment_api_registrar():
 
 
 def make_project_api_registrar():
+    """
+    Returns a decorator that wraps experiment level APIs. This decorater
+    centralizes some common logic, including getting the project
+    object, authenticating requests, and caching responses.
+    """
     registry = {}
 
     def registrar(func):
@@ -220,10 +237,14 @@ def get_cds_range_lookup(ribo: Ribo):
 
 @register_experiment_api
 def get_coverage(ribo, experiment: Experiment, request, *args, **kwargs):
+    """
+    Get the coverage for a particular gene in an experiment. Also returns the CDS range
+    for the gene and the sequence.
+    """
     gene = request.GET.get("gene")
     if gene is None:
         return HttpResponseBadRequest(
-            "site type must be provided as a url parameter (either 'start' or 'stop')"
+            "gene name must be provided as a url parameter"
         )
     cds_range = get_cds_range_lookup(ribo)[gene][1]
     df = ribo.get_transcript_coverage(
