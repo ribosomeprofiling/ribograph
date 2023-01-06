@@ -8,6 +8,7 @@ RUN apt-get update --fix-missing && \
 
 # Install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+  && apt-get update --fix-missing \
   && apt-get install -y nodejs \
   && curl -L https://www.npmjs.com/install.sh | sh
 
