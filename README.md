@@ -42,6 +42,8 @@ Once the container is ready, you can run the container.
 docker compose -f docker-compose_local.yml up
 ```
 
+We recommend using <a href="https://github.com/ribosomeprofiling/ribograph"><img width="30%" src="https://github.com/ribosomeprofiling/ribograph/raw/main/docs/Firefox_logo,_2019.svg" alt="Firefox"></a> for Ribograph.
+
 On your browser, go to the URL: [http://localhost:8000/](http://localhost:8000/). 
 If the container is built succesfully, you should see a welcome prompt asking you to create a username and password.
 
@@ -58,7 +60,7 @@ After the docker instance is started, on first time use you will be prompted to 
 
 Click on the "+" icon on the bottom right.
 
-![Add New Project](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/welcome.jpg?raw=true)
+![Add New Project](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/add_project.jpg?raw=true)
 
 Fill out the form. You can leave description box empty.
 
