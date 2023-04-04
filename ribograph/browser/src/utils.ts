@@ -124,6 +124,8 @@ export function openCoverageView(experiment_id: number) {
     window.open(`/${experiment_id}/coverage`, "_self")
 }
 
+export const sliderFormat = { 'suffix': 'nt' }
+
 
 /////////////////////////////
 //// DATA ARRAY CLASSES

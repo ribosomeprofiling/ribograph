@@ -5,7 +5,7 @@ import RegionCountsChart from '../components/RegionCountsChart.vue'
 import CheckboxTooltip from '../components/CheckboxTooltip.vue'
 import MetageneCounts from '../components/MetageneCounts.vue'
 
-import { sliderLogic, getMetadata } from '../utils'
+import { sliderLogic, getMetadata, sliderFormat } from '../utils'
 
 const props = defineProps<{
     experiment: number
@@ -31,11 +31,10 @@ getMetadata(props.experiment).then(x => {
     <LengthDistributionChart :ids="[experiment]" :normalize="normalize" />
 
     <div class="mt-5 mb-4">
-        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" />
+        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat" />
     </div>
 
     <RegionCountsChart :ids="[experiment]" :range="sliderPositions" />
     <MetageneCounts :ids="[experiment]" :range="sliderPositions" type="start" :normalize="normalize" />
     <MetageneCounts :ids="[experiment]" :range="sliderPositions" type="stop" :normalize="normalize" />
-
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import CoveragePlot from '../components/CoveragePlot.vue'
-import { getGeneList, openGeneView, getCoverageData, sliderLogic, getExperimentList, openCoverageView } from '../utils'
+import { getGeneList, openGeneView, getExperimentList, openCoverageView } from '../utils'
 import SearchableList from '../components/SearchableList.vue';
 import CheckboxTooltip from '../components/CheckboxTooltip.vue';
 
@@ -46,14 +46,12 @@ const experimentSearchListData = computed(() => experimentList.value.map(x => ({
 </script>
 
 <template>
-
     <div class="d-flex">
         <a class="btn btn-secondary" :href="`/${experiment}/offset`">
             Edit Offsets
         </a>
 
-        <CheckboxTooltip class="ms-4 align-self-center" v-model="useOffsets"
-            tooltip="Use offsets for P site correction">
+        <CheckboxTooltip class="ms-4 align-self-center" v-model="useOffsets" tooltip="Use offsets for P site correction">
             Use Offsets
         </CheckboxTooltip>
     </div>
@@ -61,7 +59,7 @@ const experimentSearchListData = computed(() => experimentList.value.map(x => ({
     <div class="row">
         <div class="col-12">
             <CoveragePlot :gene="gene || ''" :ids="experiment ? [...experiments].map(x => parseInt(x)) : []"
-             :useOffsets="useOffsets"/>
+                :useOffsets="useOffsets" />
         </div>
     </div>
 

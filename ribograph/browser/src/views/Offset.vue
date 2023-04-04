@@ -5,7 +5,7 @@ import RegionCountsChart from '../components/RegionCountsChart.vue'
 import CheckboxTooltip from '../components/CheckboxTooltip.vue'
 import MetageneCounts from '../components/MetageneCounts.vue'
 
-import { sliderLogic, getMetadata } from '../utils'
+import { sliderLogic, getMetadata, sliderFormat } from '../utils'
 import { setOffset, getOffsetComputed } from '../localStorageStore'
 
 const props = defineProps<{
@@ -17,7 +17,7 @@ const { sliderPositionsRaw, sliderPositions } = sliderLogic()
 
 const min = ref(15)
 const max = ref(40)
-const offsets = ref<number[]|null>(null) 
+const offsets = ref<number[] | null>(null)
 
 getMetadata(props.experiment).then(x => {
     min.value = x.min
@@ -61,7 +61,6 @@ watch(focusPoint, (n) => {
 </script>
 
 <template>
-
     <div class=" mb-4 d-flex justify-content-start">
         <div class="align-self-center">
             <a class="btn btn-dark" :href="`/${experiment}/coverage`">
@@ -83,7 +82,7 @@ watch(focusPoint, (n) => {
     </div>
 
     <div class="my-5">
-        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" />
+        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat" />
     </div>
 
     <div class="row">
@@ -92,8 +91,8 @@ watch(focusPoint, (n) => {
             <div class="form-group row mb-0" v-for="(x, i) in offsets" :key="'input' + i">
                 <label :for="'offsetcontrol' + i" class="col-sm-1 col-form-label-sm p-0">{{ min + i }}</label>
                 <div class="col">
-                    <input type="number" v-model.number="offsets[i]" @focusin="focusPoint = i"
-                        @focusout="focusPoint = null" class="form-control form-control-sm" :id="'offsetcontrol' + i">
+                    <input type="number" v-model.number="offsets[i]" @focusin="focusPoint = i" @focusout="focusPoint = null"
+                        class="form-control form-control-sm" :id="'offsetcontrol' + i">
                 </div>
             </div>
         </div>

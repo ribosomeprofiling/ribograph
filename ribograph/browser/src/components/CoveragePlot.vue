@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import PlotlyPlot from './PlotlyPlot.vue'
 import type Plotly from '../plotly'
-import { generateRange, CODON_DICT, getCoverageData, DataArray2D, sliderLogic } from '../utils'
+import { generateRange, CODON_DICT, getCoverageData, DataArray2D, sliderLogic, sliderFormat } from '../utils'
 import { getOffsetComputed } from '../localStorageStore'
 
 const { sliderPositionsRaw, sliderPositions } = sliderLogic()
@@ -243,7 +243,7 @@ function setTextViewState(eventdata: Plotly.PlotRelayoutEvent) {
 
 <template>
     <div class="my-5">
-        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" />
+        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat" />
     </div>
     <PlotlyPlot :datasets="datasets" :options="options" @plotly_relayout="setTextViewState($event)" class="mb-4" />
 </template>
