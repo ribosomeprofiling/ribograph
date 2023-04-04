@@ -12,7 +12,7 @@ Ribograph can deliver at a glance visualizations of QC information, such as read
 ---
  
 ## Installation
-RiboGraph requires [Docker](https://docs.docker.com/install/). Here is a [tutorial for installing it on Ubuntu.](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04). If you're running into permission issues and being forced to run with sudo, [you might need to add yourself to the docker user group](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
+RiboGraph requires [Docker](https://docs.docker.com/install/). Here is a [tutorial for installing it on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04). If you're running into permission issues and being forced to run with sudo, [you might need to add yourself to the docker user group](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
  
 RiboGraph runs entirely within a Docker container, and local development should happen within this running container. All other dependencies, including required Python packages and Node.js, are installed inside the container.
 
@@ -42,7 +42,8 @@ Once the container is ready, you can run the container.
 docker compose -f docker-compose_local.yml up
 ```
 
-We recommend using <a href="https://github.com/ribosomeprofiling/ribograph"><img width="30%" src="https://github.com/ribosomeprofiling/ribograph/raw/main/docs/Firefox_logo,_2019.svg" alt="Firefox"></a> for Ribograph.
+We recommend using <a href="https://www.mozilla.org/">Firefox</a> for Ribograph. <a href="https://www.mozilla.org/">
+<img width="5%" src="https://github.com/ribosomeprofiling/ribograph/raw/main/docs/Firefox_logo,_2019.svg" alt="Firefox"></a>
 
 On your browser, go to the URL: [http://localhost:8000/](http://localhost:8000/). 
 If the container is built succesfully, you should see a welcome prompt asking you to create a username and password.
@@ -163,7 +164,9 @@ djlint . --reformat
 
 
 ### References
-...
+When a ribo file is uploaded, a hash sum is computed for the transcript names and their corresponding lengths. More precisely, the transcript names and their lengths are concatanated and and a single md5 sum of the entire string is computed. This value is used to compare two experiments to conclude whether they have the same transcriptome refrence or not.
+
+When  there is an attempt of matching an experiment with a reference, transcript names and lengths are compared one-by-one and if the first mismatch is reported. This way users can clearly see why their refernce does not match that of the experiment.
 
 ## Implementation Notes
 RiboGraph is implemented as a Django web app that uses Vue supplementally to provide reactivity on the front-end. During development, both the Django dev server and the hot reloading Vue dev server are run in parallel. During production, the Vue files are built into static assets that are served through Django. This logic is implemented in the [vue_app](ribograph/browser/templates/browser/vue_app.html) Django template.

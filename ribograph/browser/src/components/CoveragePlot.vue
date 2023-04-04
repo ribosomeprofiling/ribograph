@@ -54,9 +54,25 @@ watch(() => props.gene, () => {
     updateCoverageData()
 })
 
-// assume experiment ids can only be appended
 watch(() => props.ids, (newIds, oldIds) => {
-    if (newIds.length != 1 && newIds.length > oldIds.length) {
+    if (newIds.length < oldIds.length) {
+        // an experiment was removed
+        const removedIds = oldIds.filter(x => !newIds.includes(x))
+        // traverse the coverageIds list backwards so we don't mess with future indices 
+        for (let i = coverageData.value.length - 1; i >= 0; i--) {
+            if (removedIds.includes(coverageData.value[i].id)) {
+                coverageData.value.splice(i, 1) // delete the element
+            }
+        }
+    } else if (newIds.length > oldIds.length) {
+        // an experiment was added
+        if (newIds.length == 1) {
+            if (coverageData.value.find(x => x.id === newIds[0])) {
+                // value is already contained in the list, exit early
+                return
+            }
+        }
+        // an experiment was added
         addExperiment(newIds[newIds.length - 1])
     }
 })
@@ -64,9 +80,9 @@ watch(() => props.ids, (newIds, oldIds) => {
 const cdsRange = computed(() => coverageData.value.length > 0 ? coverageData.value[0].cdsRange : null)
 
 
-const min = computed(() => coverageData.value.length > 0 ? 
+const min = computed(() => coverageData.value.length > 0 ?
     Math.min(...coverageData.value.map(x => x.min)) : 15)
-const max = computed(() => coverageData.value.length > 0 ? 
+const max = computed(() => coverageData.value.length > 0 ?
     Math.max(...coverageData.value.map(x => x.min + x.coverage.data.length - 1)) : 40)
 
 const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
