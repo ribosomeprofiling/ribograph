@@ -37,12 +37,24 @@ const selected = computed<Set<string> | string>({
     }
 })
 
-// automatically allow for multiselect is selected.value is a Set
+// automatically allow for multiselect if selected.value is a Set
 function isSelected(id: string) {
     if (typeof selected.value === "string") {
         return selected.value === id
     } else {
         return selected.value.has(id)
+    }
+}
+
+function selectOrUnselect(id: string) {
+    if (isSelected(id)) {
+        if (typeof selected.value === "string") {
+            selected.value = new Set()
+        } else {
+            selected.value.delete(id)
+        }
+    } else {
+        select(id)
     }
 }
 
@@ -60,7 +72,7 @@ function select(id: string) {
     }
 }
 
-function secondarySelect(event : MouseEvent, item : string) {
+function secondarySelect(event: MouseEvent, item: string) {
     event.preventDefault()
     emit('secondarySelect', item)
 }
@@ -69,11 +81,11 @@ function secondarySelect(event : MouseEvent, item : string) {
 
 <template>
     <input class="form-control mb-2" type="search" :placeholder="searchPlaceholder" v-model="search">
-    <RecycleScroller class="mb-2 scroller list-group" :items="filteredData" :item-size="32" key-field="id" v-slot="{ item }">
-        <div @click="select(item.id)" @contextmenu="secondarySelect($event, item)"
+    <RecycleScroller class="mb-2 scroller list-group" :items="filteredData" :item-size="32" key-field="id"
+        v-slot="{ item }">
+        <div @click="selectOrUnselect(item.id)" @contextmenu="secondarySelect($event, item)"
             class="list-group-item list-group-item-action d-flex justify-content-between align-items-center option"
-            :title="item.title"
-            :class="isSelected(item.id) ? 'active' : ''">
+            :title="item.title" :class="isSelected(item.id) ? 'active' : ''">
             <span class="text-truncate">{{ item.title }}</span>
             <span class="badge bg-primary rounded-pill" v-if="item.subtitle">{{ item.subtitle }}</span>
         </div>
