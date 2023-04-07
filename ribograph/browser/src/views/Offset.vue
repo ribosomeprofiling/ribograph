@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, computed } from 'vue'
 import LengthDistributionChart from '../components/LengthDistributionChart.vue'
 import RegionCountsChart from '../components/RegionCountsChart.vue'
 import CheckboxTooltip from '../components/CheckboxTooltip.vue'
 import MetageneCounts from '../components/MetageneCounts.vue'
 
-import { sliderLogic, getMetadata, sliderFormat } from '../utils'
+import { sliderLogic, getMetadata, sliderFormat, getMetageneCounts, apiDataComposable } from '../utils'
 import { setOffset, getOffsetComputed } from '../localStorageStore'
 
 const props = defineProps<{
@@ -17,20 +17,21 @@ const { sliderPositionsRaw, sliderPositions } = sliderLogic()
 
 const min = ref(15)
 const max = ref(40)
-const offsets = ref<number[] | null>(null)
-
-getMetadata(props.experiment).then(x => {
-    min.value = x.min
-    max.value = x.max
-    // these are the user inputted offsets for each gene length, default all to 0
-    offsets.value = Array(max.value - min.value + 1).fill(0) // default to Array of 0s
-})
+const offsets = ref<number[]>([])
 
 onMounted(async () => {
     const savedOffsets = (await getOffsetComputed(props.experiment)).value
-    if (savedOffsets) {
-        offsets.value = savedOffsets
-    }
+    getMetadata(props.experiment).then(x => {
+        min.value = x.min
+        max.value = x.max
+    }).then(() => {
+        if (savedOffsets) {
+            offsets.value = savedOffsets
+        } else {
+            // these are the user inputted offsets for each gene length, default all to 0
+            offsets.value = Array(max.value - min.value + 1).fill(0) // default to Array of 0s
+        }
+    })
 })
 
 //////////////////
@@ -58,6 +59,37 @@ watch(focusPoint, (n) => {
         }
     }
 })
+
+//////////////////
+//// AUTO-INITTIALIZE
+//////////////////
+
+interface MetageneCountsData {
+    index: number[],
+    columns: number[],
+    data: number[][],
+    experiment: string,
+    min: number,
+    totalReads: number
+}
+
+const { apiData } = apiDataComposable<MetageneCountsData>([props.experiment], (id) => getMetageneCounts(id, "start"))
+
+const minPosition = computed(() => (Object.values(apiData).length > 0 ?
+    Math.min(...Object.values(apiData).map(x => x.columns[0])) : -50))
+
+const searchBounds = [-18, -6]
+
+const autoInitializedValues = computed(() => {
+    const x = apiData[props.experiment]
+    if (!x) return []
+    return x.data.map(x => {
+        const possibleOffsets = x.slice(searchBounds[0] - minPosition.value, searchBounds[1] - minPosition.value)
+        const i = possibleOffsets.indexOf(Math.max(...possibleOffsets));
+        return -searchBounds[0] - i
+    })
+})
+
 </script>
 
 <template>
@@ -75,6 +107,8 @@ watch(focusPoint, (n) => {
         </div>
 
         <div class="">
+            <button class="btn btn-danger me-2" @click="offsets = [...autoInitializedValues]"
+                title="Auto Initialize offset values">Auto-Init</button>
             <button class="btn btn-warning me-2" @click="offsets.fill(0)" title="Set offsets to 0">Reset</button>
             <button type="button" class="btn btn-success" title="Store offsets locally"
                 @click="setOffset(offsets, experiment)">Save</button>
