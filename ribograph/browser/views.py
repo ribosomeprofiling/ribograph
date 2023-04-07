@@ -95,6 +95,17 @@ def offset(request, experiment_id):
 
 
 @login_required
+def gene_correlation(request, project_id):
+    this_project = Project.objects.get(id=project_id)
+
+    context = {
+        "project": this_project
+    }
+
+    return render(request, "browser/gene_correlation.html", context)
+
+
+@login_required
 def add_project(request):
     context = {}
 

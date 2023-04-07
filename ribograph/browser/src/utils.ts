@@ -81,6 +81,11 @@ export const getExperimentList = (experiment_id: number) => (
     handleAPICall(`Loading experiment list`,
         `/api/${experiment_id}/listExperiments`)
 )
+
+export const getGeneCorrelations = (project_id: number) => (
+    handleAPICall(`Loading gene correlations`,
+        `/api/${project_id}/getGeneCorrelations`)
+)
 /////////////////////////
 /// CHART UTILITIES
 /////////////////////////

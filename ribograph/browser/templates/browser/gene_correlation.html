@@ -1,0 +1,9 @@
+{% extends "browser/base.html" %}
+{% load bootstrap5 %}
+{% block body %}
+    <p class="fs-2 fw-semibold mb-0">
+        <a class="text-body"
+           href="{% url 'browser:project_details' project.id %}">{{ project.name }}</a>
+    </p>
+    {% include "browser/vue_app.html" %}
+{% endblock body %}

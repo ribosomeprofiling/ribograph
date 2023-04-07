@@ -4,9 +4,14 @@
 {% block body %}
     <p class="fs-2">{{ project.name }}</p>
     {% if project.description %}<p>{{ project.description }}</p>{% endif %}
-    <a href="{% url 'browser:edit_project_description' project.id %}">Edit description</a>
-    <br>
-    <br>
+    <p>
+        <a href="{% url 'browser:edit_project_description' project.id %}">Edit description</a>
+    </p>
+
+    <p>
+        <a class="btn btn-primary" href="{% url 'browser:gene_correlation' project.id %}">Open Gene Correlation</a>
+    </p>
+
     <p class="fs-5 mb-2">Upload experiment data</p>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}

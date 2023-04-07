@@ -108,7 +108,7 @@ def make_project_api_registrar():
                 request = args[0]
                 assert "project_id" in kwargs and "experiment_id" not in kwargs
                 project = Project.objects.get(id=kwargs["project_id"])
-                if not request.user or project.public:
+                if not (request.user or project.public):
                     raise Http404
                 result = f(project, *args, **kwargs)
                 if not isinstance(result, HttpResponse):
@@ -117,7 +117,7 @@ def make_project_api_registrar():
 
             return wrapper
 
-        registry[func.__name__] = api_decorator(func)
+        registry[camelCase(func.__name__)] = api_decorator(func)
         return api_decorator(func)
 
     registrar.all = registry
@@ -125,7 +125,7 @@ def make_project_api_registrar():
 
 
 register_experiment_api = make_experiment_api_registrar()
-register_project_api = make_experiment_api_registrar()
+register_project_api = make_project_api_registrar()
 
 
 @register_experiment_api
@@ -280,4 +280,97 @@ def list_experiments(ribo, experiment: Experiment, request, *args, **kwargs):
 
 @register_project_api
 def get_gene_correlations(project: Project, *args, **kwargs):
-    ...
+    data = gene_correlation_helper(project)
+
+    if not data:
+        return HttpResponse(status=400)
+    
+    ORGANISM_GENOME_MAP = {
+        "Homo sapiens": "hg38",
+        "Mus musculus": "mm10"
+    }
+
+    # genome = ORGANISM_GENOME_MAP.get(data[2])
+
+    context = {
+        "geneCounts": data[0].to_dict(),
+        "correlations": data[1],
+        # "organism": data[2],
+        # "genome": genome
+    }
+
+    return JsonResponse(context)
+
+
+region_counts_cache = {}
+
+
+@lru_cache()
+def gene_correlation_helper(project : Project):
+
+    # get a list of all experiment aliases in the study
+    experiments = Experiment.objects.filter(project=project)
+    if len(experiments) == 0:
+        return None
+
+    # organisms = [x.organism for x in experiments]
+    # if all(x == organisms[0] for x in organisms):  # if all organisms are the same
+    #     organism = organisms[0]
+    # else:
+    #     organism = None
+
+    # create a dict of experiment alias : ribo_object
+    ribo_objects = {experiment.name: get_ribo(experiment) for experiment in experiments
+        if experiment.reference_digest == experiments[0].reference_digest}
+
+    # get gene cds counts for each ribo_object
+    region_counts = [get_region_counts_helper(ribo).get(name, None)
+                     for name, ribo in ribo_objects.items()]
+    # filter out None
+    region_counts = [x for x in region_counts if x is not None]
+
+    # get correlation coefficients for the heatmap
+    correlations = generate_correlations(region_counts)
+
+    region_counts_cache.clear()  # clear the cache
+    return pd.DataFrame(reduce(
+        lambda x, y: pd.merge(x, y, left_index=True, right_index=True), region_counts)
+    ), correlations
+
+
+def get_region_counts_helper(ribo):
+    """
+    A light caching wrapper around the Ribo.get_region_counts function
+    """
+
+    key = ribo._handle.filename
+    if key not in region_counts_cache:
+        region_counts_cache[key] = ribo.get_region_counts(
+            'CDS', sum_references=False, alias=(ribo.alias != None))
+
+    return region_counts_cache[key]
+
+
+def generate_correlations(region_counts):
+    """
+    Generate a square matrix of spearman correlation coefficients between gene region counts
+    """
+
+    n = len(region_counts)
+
+    # init a blank square array
+    correlations = [[None for _ in range(n)] for _ in range(n)]
+
+    # fill in the diagonal
+    for i in range(n):
+        correlations[i][i] = 1
+
+    # fill in other values
+    for i in range(n):
+        for j in range(i):
+            c = spearmanr(region_counts[i], region_counts[j]).correlation
+            # symmetric values
+            correlations[i][j] = c
+            correlations[j][i] = c
+
+    return correlations
