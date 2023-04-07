@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import PlotlyPlot from './PlotlyPlot.vue'
 import type Plotly from '../plotly'
-import { generateRange, CODON_DICT, getCoverageData, DataArray2D, sliderLogic, sliderFormat } from '../utils'
+import { generateRange, CODON_DICT, getCoverageData, DataArray2D, sliderLogic, sliderFormat, scaleData } from '../utils'
 import { getOffsetComputed } from '../localStorageStore'
 
 const { sliderPositionsRaw, sliderPositions } = sliderLogic()
@@ -11,7 +11,8 @@ const props = defineProps<{
     gene: string, // the gene name
     ids: number[], // experiment ids
     geneSequence?: string[],
-    useOffsets?: boolean
+    useOffsets?: boolean,
+    normalize?: boolean
 }>()
 
 interface CoverageData {
@@ -90,9 +91,11 @@ const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
         .filter(x => x.gene === props.gene)
         .map(x => ({
             x: generateRange(0, x.coverage.columns.length),
-            y: (new DataArray2D(x.coverage.data, x.min))
+            y: scaleData((new DataArray2D(x.coverage.data, x.min))
                 // sliceSum the data by the slider values
-                .sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null),
+                .sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null),   
+                // reads per million per kilobase 
+                props.normalize ? 1_000 / x.totalReads : 1),
             // mode: 'lines+markers',
             type: 'bar',
             name: x.experiment,
@@ -122,7 +125,7 @@ const options = computed<Partial<Plotly.Layout>>(() => ({
     },
     showlegend: true,
     legend: { "orientation": "h" },
-    margin: { t: 40, b: 50, l: 30, r: 0 },
+    margin: { t: 40, b: 50, l: 40, r: 0 },
     yaxis: {
         bargap: 0,
         fixedrange: true

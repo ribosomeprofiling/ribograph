@@ -10,6 +10,7 @@ const props = defineProps<{
 }>()
 
 const useOffsets = ref(false)
+const normalize = ref(false)
 const geneList = ref<Record<string, number>>({})
 getGeneList(props.experiment).then(data => geneList.value = data.genes)
 
@@ -54,12 +55,17 @@ const experimentSearchListData = computed(() => experimentList.value.map(x => ({
         <CheckboxTooltip class="ms-4 align-self-center" v-model="useOffsets" tooltip="Use offsets for P site correction">
             Use Offsets
         </CheckboxTooltip>
+
+        <CheckboxTooltip class="ms-4 align-self-center" v-model="normalize"
+            tooltip="Normalize values for each experiment to per 1,000 total reads">
+            Normalize by Total Reads
+        </CheckboxTooltip>
     </div>
 
     <div class="row">
         <div class="col-12">
             <CoveragePlot :gene="gene || ''" :ids="experiment ? [...experiments].map(x => parseInt(x)) : []"
-                :useOffsets="useOffsets" />
+                :useOffsets="useOffsets" :normalize="normalize"/>
         </div>
     </div>
 
