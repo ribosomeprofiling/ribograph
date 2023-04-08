@@ -103,6 +103,8 @@ You can adjust the offset of each footprint length. Then you can save the offset
 
 ![Using gOffsets](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/use_offsets.jpg?raw=true)
 
+You can also auto-initialize reasonable offset values using the "Auto-Init" button. This will align the max value from [-18, -6] on the start site metagene plot to 0 for every read length. Note that these values still need to be saved before they can take effect on the coverage plot.
+
 ### Adding References
 
 To be able to view nucelotide sequences in the coverage plot, you need to associate the experiment with a reference.
