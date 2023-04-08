@@ -8,5 +8,5 @@ export default createMatcher({
     '/:experiment/experiment_details': ExperimentOverview,
     '/:experiment/coverage': Coverage,
     '/:experiment/offset': Offset,
-    '/:project/gene_correlation': GeneCorrelation
+    '/:project/gene_correlation/:referenceHash': GeneCorrelation
 })

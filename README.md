@@ -124,6 +124,14 @@ Click on the "Sequence" to view the nucleotide sequences.
 
 ![Reference Page](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/view_nucleotides.jpg?raw=true)
 
+### Gene Correlation Viewer
+Select "Open Gene Correlation" from a project page to open the gene correlation viewer. On the left will be a scatterplot comparing the gene frequencies in two different experiments. On the right will be a heatmap displaying the Speaman correlation of gene frequencies between each experiment and every other compatible experiment. By clicking on any cell in this heatmap, the corresponding scatterplot will be displayed to the left.
+
+Experiments are grouped by compatibility as determined by their reference digest (See Reference Compatibility for more information). If multiple compatible groups of experiments are available in a project, the gene correlation page will allow you to select between them.
+
+### UCSC Genome Database Integration
+By right clicking on a gene name in the coverage search list or on a point in the gene correlation plot, you can open that gene's entry in the UCSC Genome Database. To enable this functionality, select either the 'hg38 (Homo sapiens)' or 'mm10 (Mus musculus)' database. You may have to enable pop-ups in your browser.
+
 ### More Files
 
 You can find additional ribo files and references in the following Github repository:

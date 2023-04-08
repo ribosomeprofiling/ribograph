@@ -94,13 +94,33 @@ def offset(request, experiment_id):
     return render(request, "browser/offset.html", context)
 
 
+def get_correlation_groups(project_id):
+    return list(
+        {e.reference_digest for e in Experiment.objects.filter(project_id=project_id)}
+    )
+
+
 @login_required
-def gene_correlation(request, project_id):
+def gene_correlation_redirect(request, project_id):
+    reference_hash = get_correlation_groups(project_id)[0]
+    return HttpResponseRedirect(
+        reverse("browser:gene_correlation", args=[project_id, reference_hash])
+    )
+
+
+@login_required
+def gene_correlation(request, project_id, reference_hash):
     this_project = Project.objects.get(id=project_id)
 
+    # set of the different unique hash digests in this project
     context = {
-        "project": this_project
+        "project": this_project,
+        "correlation_groups": get_correlation_groups(project_id),
+        "reference_hash": reference_hash,
     }
+
+    if reference_hash not in context["correlation_groups"]:
+        raise Http404
 
     return render(request, "browser/gene_correlation.html", context)
 

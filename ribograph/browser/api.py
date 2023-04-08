@@ -23,12 +23,14 @@ from ribopy import Ribo
 from ribopy.core.get_gadgets import get_region_boundaries, get_reference_names
 import time
 
+
 def camelCase(st: str):
     """
     Convert a given string to camelCase
     """
     output = "".join(x for x in st.title() if x.isalnum())
     return output[0].lower() + output[1:]
+
 
 @cached(cache=TTLCache(maxsize=64, ttl=300))
 def get_ribo(experiment: Experiment) -> Ribo:
@@ -52,7 +54,7 @@ def request_key(*args, **kwargs):
 def make_experiment_api_registrar():
     """
     Returns a decorator that wraps experiment level APIs. This decorater
-    centralizes some common logic, including getting the ribo and experiment 
+    centralizes some common logic, including getting the ribo and experiment
     objects, authenticating requests, and caching responses.
     """
     registry = {}
@@ -243,9 +245,7 @@ def get_coverage(ribo, experiment: Experiment, request, *args, **kwargs):
     """
     gene = request.GET.get("gene")
     if gene is None:
-        return HttpResponseBadRequest(
-            "gene name must be provided as a url parameter"
-        )
+        return HttpResponseBadRequest("gene name must be provided as a url parameter")
     cds_range = get_cds_range_lookup(ribo)[gene][1]
     df = ribo.get_transcript_coverage(
         experiment.name, alias=(ribo.alias != None), transcript=gene
@@ -279,16 +279,20 @@ def list_experiments(ribo, experiment: Experiment, request, *args, **kwargs):
 
 
 @register_project_api
-def get_gene_correlations(project: Project, *args, **kwargs):
-    data = gene_correlation_helper(project)
+def get_gene_correlations(project: Project, request, *args, **kwargs):
+
+    reference_hash = request.GET.get("referenceHash")
+    if reference_hash is None:
+        return HttpResponseBadRequest(
+            "reference hash must be provided as a url parameter"
+        )
+
+    data = gene_correlation_helper(project, reference_hash)
 
     if not data:
         return HttpResponse(status=400)
-    
-    ORGANISM_GENOME_MAP = {
-        "Homo sapiens": "hg38",
-        "Mus musculus": "mm10"
-    }
+
+    ORGANISM_GENOME_MAP = {"Homo sapiens": "hg38", "Mus musculus": "mm10"}
 
     # genome = ORGANISM_GENOME_MAP.get(data[2])
 
@@ -306,7 +310,7 @@ region_counts_cache = {}
 
 
 @lru_cache()
-def gene_correlation_helper(project : Project):
+def gene_correlation_helper(project: Project, referenceHash: str):
 
     # get a list of all experiment aliases in the study
     experiments = Experiment.objects.filter(project=project)
@@ -320,12 +324,17 @@ def gene_correlation_helper(project : Project):
     #     organism = None
 
     # create a dict of experiment alias : ribo_object
-    ribo_objects = {experiment.name: get_ribo(experiment) for experiment in experiments
-        if experiment.reference_digest == experiments[0].reference_digest}
+    ribo_objects = {
+        experiment.name: get_ribo(experiment)
+        for experiment in experiments
+        if experiment.reference_digest == referenceHash
+    }
 
     # get gene cds counts for each ribo_object
-    region_counts = [get_region_counts_helper(ribo).get(name, None)
-                     for name, ribo in ribo_objects.items()]
+    region_counts = [
+        get_region_counts_helper(ribo).get(name, None)
+        for name, ribo in ribo_objects.items()
+    ]
     # filter out None
     region_counts = [x for x in region_counts if x is not None]
 
@@ -333,9 +342,15 @@ def gene_correlation_helper(project : Project):
     correlations = generate_correlations(region_counts)
 
     region_counts_cache.clear()  # clear the cache
-    return pd.DataFrame(reduce(
-        lambda x, y: pd.merge(x, y, left_index=True, right_index=True), region_counts)
-    ), correlations
+    return (
+        pd.DataFrame(
+            reduce(
+                lambda x, y: pd.merge(x, y, left_index=True, right_index=True),
+                region_counts,
+            )
+        ),
+        correlations,
+    )
 
 
 def get_region_counts_helper(ribo):
@@ -346,7 +361,8 @@ def get_region_counts_helper(ribo):
     key = ribo._handle.filename
     if key not in region_counts_cache:
         region_counts_cache[key] = ribo.get_region_counts(
-            'CDS', sum_references=False, alias=(ribo.alias != None))
+            "CDS", sum_references=False, alias=(ribo.alias != None)
+        )
 
     return region_counts_cache[key]
 

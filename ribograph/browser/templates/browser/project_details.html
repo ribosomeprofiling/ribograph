@@ -7,21 +7,23 @@
     <p>
         <a href="{% url 'browser:edit_project_description' project.id %}">Edit description</a>
     </p>
-
     <p>
-        <a class="btn btn-primary" href="{% url 'browser:gene_correlation' project.id %}">Open Gene Correlation</a>
+        <a class="btn btn-primary"
+           href="{% url 'browser:gene_correlation' project.id %}">Open Gene Correlation</a>
     </p>
-
-    <p class="fs-5 mb-2">Upload experiment data</p>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {% bootstrap_form upload_form %}
-        {% buttons %}
-        <button type="submit" class="btn btn-primary">Upload</button>
-    {% endbuttons %}
-</form>
-<p>You can add new experiments by uploading their ribo files.</p>
-<br>
+    <div class="card mb-3">
+        <div class="card-body">
+            <p class="fs-5 mb-2">Upload experiment data</p>
+            <p>You can add new experiments by uploading their ribo files.</p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% bootstrap_form upload_form %}
+                {% buttons %}
+                <button type="submit" class="btn btn-primary">Upload</button>
+            {% endbuttons %}
+        </form>
+    </div>
+</div>
 {% if experiments_exist %}
     {% render_table experiment_table %}
 {% else %}

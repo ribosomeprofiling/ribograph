@@ -17,7 +17,16 @@ apipatterns += [
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("<int:project_id>/gene_correlation", views.gene_correlation, name="gene_correlation"),
+    path(
+        "<int:project_id>/gene_correlation",
+        views.gene_correlation_redirect,
+        name="gene_correlation",
+    ),
+    path(
+        "<int:project_id>/gene_correlation/<str:reference_hash>",
+        views.gene_correlation,
+        name="gene_correlation",
+    ),
     path("<int:experiment_id>/coverage", views.coverage, name="coverage"),
     path("<int:experiment_id>/offset", views.offset, name="offset"),
     path("references", views.references, name="references"),

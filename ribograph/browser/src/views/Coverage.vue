@@ -35,7 +35,7 @@ watch(gene, (newGene) => {
 const geneSearchListData = computed(() => Object.keys(geneList.value).map(gene => ({
     id: gene,
     title: gene,
-    subtitle: geneList.value[gene].toString()
+    subtitle: geneList.value[gene].toLocaleString('en-US') + " reads"
 })))
 
 const experimentSearchListData = computed(() => experimentList.value.map(x => ({
@@ -44,10 +44,12 @@ const experimentSearchListData = computed(() => experimentList.value.map(x => ({
     subtitle: x.project
 })))
 
+const genome = ref("")
+
 </script>
 
 <template>
-    <div class="d-flex">
+    <div class="d-flex flex-wrap">
         <a class="btn btn-secondary" :href="`/${experiment}/offset`">
             Edit Offsets
         </a>
@@ -56,23 +58,39 @@ const experimentSearchListData = computed(() => experimentList.value.map(x => ({
             Use Offsets
         </CheckboxTooltip>
 
-        <CheckboxTooltip class="ms-4 align-self-center" v-model="normalize"
+        <CheckboxTooltip class="me-auto ms-4 align-self-center" v-model="normalize"
             tooltip="Normalize values for each experiment to per 1,000 total reads">
-            Normalize by Total Reads
+            Normalize counts
         </CheckboxTooltip>
+
+        <div class="d-flex">
+            <div class="form-check ms-4 align-self-center">
+                <input class="form-check-input" type="radio" name="genome" id="hg38" value="hg38" v-model="genome">
+                <label class="form-check-label" for="hg38">
+                    <abbr title="use UCSC Genome Browser hg38 database">hg38 (Homo sapiens)</abbr>
+                </label>
+            </div>
+            <div class="form-check ms-4 align-self-center">
+                <input class="form-check-input" type="radio" name="genome" id="mm10" value="mm10" v-model="genome">
+                <label class="form-check-label" for="mm10">
+                    <abbr title="use UCSC Genome Browser mm10 database">mm10 (Mus musculus)</abbr>
+                </label>
+            </div>
+        </div>
+
     </div>
 
     <div class="row">
         <div class="col-12">
             <CoveragePlot :gene="gene || ''" :ids="experiment ? [...experiments].map(x => parseInt(x)) : []"
-                :useOffsets="useOffsets" :normalize="normalize"/>
+                :useOffsets="useOffsets" :normalize="normalize" />
         </div>
     </div>
 
     <div class="row">
         <div class="col-6">
             <SearchableList :data="geneSearchListData" v-model:selected="gene" search-placeholder="Search for a gene"
-                @secondarySelect="openGeneView($event.title)" />
+                @secondarySelect="openGeneView($event.title, genome)" />
         </div>
 
         <div class="col-6">

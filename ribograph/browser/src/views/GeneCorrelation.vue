@@ -7,7 +7,8 @@ import type Plotly from '../plotly'
 import PlotlyPlot from '../components/PlotlyPlot.vue';
 
 const props = defineProps<{
-    project: number
+    project: number,
+    referenceHash: string
 }>()
 
 const correlations = ref<number[][]>([])
@@ -32,7 +33,7 @@ const rho = computed(() => (
 const toast = useToast()
 onMounted(async () => {
     await nextTick() // this is needed to wait for the notification system to load in
-    getGeneCorrelations(props.project).then(data => {
+    getGeneCorrelations(props.project, props.referenceHash).then(data => {
         if (data) {
             geneCounts.value = data.geneCounts
             experiments.value = Object.keys(data.geneCounts)
@@ -45,7 +46,7 @@ onMounted(async () => {
             }
 
             correlations.value = data.correlations
-            genome.value = data.genome
+            // genome.value = data.genome
 
             // set default selected experiment 
             e1.value = experiments.value[0]
@@ -130,7 +131,8 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
     const point = data.points[0] as Partial<Plotly.PlotDatum & { text: string }>
     const gene = point.text?.split("-")[0] // get the gene name from the point text
 
-    if (gene && data.event.button == 2) { // on right click only
+    if (gene && genome.value && data.event.button == 2) { // on right click only
+        data.event.preventDefault()
         openGeneView(gene, genome.value)
     }
 }
@@ -138,6 +140,19 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
 </script>
 
 <template>
+    <div class="form-group mt-3 mb-3">
+        <label class="fs-5">UCSC Genome DB Lookup</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="genome" id="hg38" value="hg38" v-model="genome">
+                <label class="form-check-label" for="hg38">hg38 (Homo sapiens)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="genome" id="mm10" value="mm10" v-model="genome">
+                <label class="form-check-label" for="mm10">mm10 (Mus musculus)</label>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-xl-6 m-0 p-0">
@@ -149,5 +164,4 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
                 style="width:100%;height:600px;" />
         </div>
     </div>
-
 </template>
