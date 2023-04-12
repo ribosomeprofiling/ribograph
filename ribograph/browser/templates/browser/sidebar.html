@@ -39,7 +39,7 @@
                         {% for current_experiment in experiments %}
                             <li>
                                 <a href="{% url 'browser:experiment_details' experiment_id=current_experiment.id %}"
-                                   class="link-light rounded {% if current_experiment.id == experiment.id or current_experiment.reference_digest == reference_hash %} fw-semibold{% endif %}">
+                                   class="link-light rounded {% if current_experiment.id == experiment.id %} fw-semibold{% endif %}">
                                     {{ current_experiment.name }}
                                 </a>
                             </li>

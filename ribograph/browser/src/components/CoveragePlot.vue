@@ -56,6 +56,10 @@ watch(() => props.gene, () => {
 })
 
 watch(() => props.ids, (newIds, oldIds) => {
+    if (!props.gene) {
+        return
+    }
+
     if (newIds.length < oldIds.length) {
         // an experiment was removed
         const removedIds = oldIds.filter(x => !newIds.includes(x))
@@ -93,7 +97,7 @@ const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
             x: generateRange(0, x.coverage.columns.length),
             y: scaleData((new DataArray2D(x.coverage.data, x.min))
                 // sliceSum the data by the slider values
-                .sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null),   
+                .sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null),
                 // reads per million per kilobase 
                 props.normalize ? 1_000 / x.totalReads : 1),
             // mode: 'lines+markers',
@@ -185,8 +189,14 @@ const geneSeqenceText = computed<string[]>(() => {
     return geneSequenceText
 })
 
-// find the maximum value across all data
-const maxValue = computed<number>(() => Math.max(...coverageData.value.map(x => x.coverage.data).flat(2)))
+// find the maximum value across all data within slider bounds
+const maxValue = computed<number>(() => {
+    const coverageSumSlice = coverageData.value.map(x =>
+        (new DataArray2D(x.coverage.data, x.min)).sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null))
+    const scaledCoverageSlice = coverageSumSlice.map(
+        (x, i) => scaleData(x, props.normalize ? 1_000 / coverageData.value[i].totalReads : 1))
+    return Math.max(...scaledCoverageSlice.flat(2))
+})
 
 /**
  * Return an array of color strings in parallel with the geneSequence.
@@ -211,7 +221,7 @@ function makeColorArray(length: number, cdsRange: [number, number]) {
 }
 
 const viewSize = ref(Infinity)
-const GENE_VIEW_THRESHOLD = 45
+const GENE_VIEW_THRESHOLD = 50
 
 const geneSequenceLabels = computed<Partial<Plotly.PlotData> | null>(() =>
     geneSequence.value &&
@@ -220,7 +230,7 @@ const geneSequenceLabels = computed<Partial<Plotly.PlotData> | null>(() =>
             x: generateRange(0, geneSequence.value.length),
             // fill the label array with the max value * some negative constant 
             // so that they take up a constant proportion of the width
-            y: Array(geneSequence.value.length).fill(-0.2 * maxValue.value),
+            y: Array(geneSequence.value.length).fill(-0.1 * maxValue.value),
             type: 'bar',
             name: 'Sequence',
             marker: {

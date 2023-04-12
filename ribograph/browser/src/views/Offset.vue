@@ -108,7 +108,7 @@ const autoInitializedValues = computed(() => {
 
         <div class="">
             <button class="btn btn-danger me-2" @click="offsets = [...autoInitializedValues]"
-                title="Auto Initialize offset values">Auto-Init</button>
+                v-if="apiData[props.experiment]" title="Auto Initialize offset values">Auto-Init</button>
             <button class="btn btn-warning me-2" @click="offsets.fill(0)" title="Set offsets to 0">Reset</button>
             <button type="button" class="btn btn-success" title="Store offsets locally"
                 @click="setOffset(offsets, experiment)">Save</button>
