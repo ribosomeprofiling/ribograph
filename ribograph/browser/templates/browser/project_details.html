@@ -1,27 +1,33 @@
-{% extends "browser/base.html" %}
+{% extends "browser/project_base.html" %}
 {% load render_table from django_tables2 %}
 {% load bootstrap5 %}
-{% block body %}
-    <p class="fs-2">{{ project.name }}</p>
-    {% if project.description %}<p>{{ project.description }}</p>{% endif %}
-    <p>
-        <a href="{% url 'browser:edit_project_description' project.id %}">Edit description</a>
-    </p>
-    <p>
-        <a class="btn btn-primary"
-           href="{% url 'browser:gene_correlation' project.id %}">Open Gene Correlation</a>
-    </p>
-    <div class="card mb-3">
-        <div class="card-body">
-            <p class="fs-5 mb-2">Upload experiment data</p>
-            <p>You can add new experiments by uploading their ribo files.</p>
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {% bootstrap_form upload_form %}
-                {% buttons %}
-                <button type="submit" class="btn btn-primary">Upload</button>
-            {% endbuttons %}
-        </form>
+{% block content %}
+    <div class="accordion mb-3">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="upload-form-heading">
+                <button class="accordion-button {% if experiments_exist %} collapsed{% endif %}"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#upload-form-collapse"
+                        aria-expanded="{% if experiments_exist %}false{% else %}true{% endif %}"
+                        aria-controls="upload-form-collapse">
+                    Upload experiment data
+                </button>
+            </h2>
+            <div id="upload-form-collapse"
+                 class="accordion-collapse {% if experiments_exist %} collapse{% endif %}"
+                 aria-labelledby="upload-form-heading">
+                <div class="accordion-body">
+                    <p>You can add new experiments by uploading their ribo files.</p>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% bootstrap_form upload_form %}
+                        {% buttons %}
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    {% endbuttons %}
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% if experiments_exist %}
@@ -29,6 +35,4 @@
 {% else %}
     <p>There are no experiments.</p>
 {% endif %}
-<a href="{% url 'browser:delete_project' project.id %}"
-   class="btn btn-outline-danger mt-4">Delete {{ project.name }}</a>
-{% endblock body %}
+{% endblock content %}

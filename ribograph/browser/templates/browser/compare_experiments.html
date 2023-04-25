@@ -1,0 +1,21 @@
+{% extends "browser/project_base.html" %}
+{% load bootstrap5 %}
+{% block content %}
+    <div class="fs-5 mb-2">Select Experiments</div>
+    <form method="get">
+        {% for experiment in experiments %}
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       value=""
+                       id="experiment-{{ experiment.id }}"
+                       name="{{ experiment.id }}">
+                <label class="form-check-label" for="experiment-{{ experiment.id }}">{{ experiment.name }}</label>
+            </div>
+        {% endfor %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary mt-2">Compare Experiments</button>
+    {% endbuttons %}
+</form>
+{% include "browser/vue_app.html" %}
+{% endblock content %}

@@ -54,37 +54,37 @@ async function handleAPICall(message: string, endpoint: string) {
 
 export const getMetadata = (experiment_id: number) => (
     handleAPICall(`Loading Metadata`,
-        `/api/${experiment_id}/getMetadata`))
+        `/api/experiment/${experiment_id}/getMetadata`))
 
 export const getRegionPercentages = (experiment_id: number) => (
     handleAPICall(`Loading Region Percentages`,
-        `/api/${experiment_id}/getRegionPercentages`))
+        `/api/experiment/${experiment_id}/getRegionPercentages`))
 
 export const getLengthDistribution = (experiment_id: number) => (
     handleAPICall(`Loading Length Distribution`,
-        `/api/${experiment_id}/getLengthDistribution`))
+        `/api/experiment/${experiment_id}/getLengthDistribution`))
 
 export const getMetageneCounts = (experiment_id: number, site: 'start' | 'stop') => (
     handleAPICall(`Loading ${site[0].toUpperCase() + site.slice(1)} Site Metagene Counts`,
-        `/api/${experiment_id}/getMetageneCounts?site=${site}`))
+        `/api/experiment/${experiment_id}/getMetageneCounts?site=${site}`))
 
 export const getGeneList = (experiment_id: number) => (
     handleAPICall(`Loading Gene List`,
-        `/api/${experiment_id}/listGenes`))
+        `/api/experiment/${experiment_id}/listGenes`))
 
 export const getCoverageData = (experiment_id: number, gene: string) => (
     handleAPICall(`Loading ${gene} for experiment ${experiment_id}`,
-        `/api/${experiment_id}/getCoverage?gene=${gene}`)
+        `/api/experiment/${experiment_id}/getCoverage?gene=${gene}`)
 )
 
 export const getExperimentList = (experiment_id: number) => (
     handleAPICall(`Loading experiment list`,
-        `/api/${experiment_id}/listExperiments`)
+        `/api/experiment/${experiment_id}/listExperiments`)
 )
 
 export const getGeneCorrelations = (project_id: number, referenceHash: string) => (
     handleAPICall(`Loading gene correlations`,
-        `/api/${project_id}/getGeneCorrelations?referenceHash=${referenceHash}`)
+        `/api/project/${project_id}/getGeneCorrelations?referenceHash=${referenceHash}`)
 )
 /////////////////////////
 /// CHART UTILITIES

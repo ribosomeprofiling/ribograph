@@ -1,10 +1,6 @@
-{% extends "browser/base.html" %}
+{% extends "browser/project_base.html" %}
 {% load bootstrap5 %}
-{% block body %}
-    <p class="fs-2 fw-semibold mb-0">
-        <a class="text-body"
-           href="{% url 'browser:project_details' project.id %}">{{ project.name }}</a>
-    </p>
+{% block content %}
     {% if correlation_groups|length > 1 %}
         <div class="fs-5 mt-2 mb-1">Reference Group</div>
         <div class="btn-group ml-2" role="group" aria-label="First group">
@@ -19,4 +15,4 @@
         </div>
     {% endif %}
     {% include "browser/vue_app.html" %}
-{% endblock body %}
+{% endblock content %}
