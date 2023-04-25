@@ -6,12 +6,12 @@ from .api import register_experiment_api, register_project_api
 app_name = "browser"
 
 apipatterns = [
-    path(f"api/<int:experiment_id>/{endpoint}", func)
+    path(f"api/experiment/<int:experiment_id>/{endpoint}", func)
     for endpoint, func in register_experiment_api.all.items()
 ]
 
 apipatterns += [
-    path(f"api/<int:project_id>/{endpoint}", func)
+    path(f"api/project/<int:project_id>/{endpoint}", func)
     for endpoint, func in register_project_api.all.items()
 ]
 
@@ -26,6 +26,11 @@ urlpatterns = [
         "<int:project_id>/gene_correlation/<str:reference_hash>",
         views.gene_correlation,
         name="gene_correlation",
+    ),
+    path(
+        "<int:project_id>/compare_experiments",
+        views.compare_experiments,
+        name="compare_experiments",
     ),
     path("<int:experiment_id>/coverage", views.coverage, name="coverage"),
     path("<int:experiment_id>/offset", views.offset, name="offset"),

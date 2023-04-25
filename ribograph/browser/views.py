@@ -126,6 +126,15 @@ def gene_correlation(request, project_id, reference_hash):
 
 
 @login_required
+def compare_experiments(request, project_id):
+    project = Project.objects.get(id=project_id)
+    experiments = Experiment.objects.filter(project=project_id)
+    context = {"project": project, "experiments": experiments}
+
+    return render(request, "browser/compare_experiments.html", context)
+
+
+@login_required
 def add_project(request):
     context = {}
 
