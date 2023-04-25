@@ -102,7 +102,13 @@ def get_correlation_groups(project_id):
 
 @login_required
 def gene_correlation_redirect(request, project_id):
-    reference_hash = get_correlation_groups(project_id)[0]
+    reference_hashes = get_correlation_groups(project_id)
+
+    if len(reference_hashes) > 0:
+        reference_hash = reference_hashes[0]
+    else:
+        reference_hash = None
+
     return HttpResponseRedirect(
         reverse("browser:gene_correlation", args=[project_id, reference_hash])
     )

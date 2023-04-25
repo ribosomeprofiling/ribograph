@@ -5,6 +5,7 @@ import { useToast, POSITION } from "vue-toastification";
 import type Plotly from '../plotly'
 
 import PlotlyPlot from '../components/PlotlyPlot.vue';
+import InfoBox from '../components/InfoBox.vue';
 
 const props = defineProps<{
     project: number,
@@ -55,8 +56,20 @@ onMounted(async () => {
     })
 })
 
-const boldExperiment = (experiment_aliases: string[], tgt: string) => (
-    experiment_aliases.map(x => x == tgt ? `<b>${x}</b>` : x))
+const boldExperiment = (experiment_aliases: string[], tgt: string) => {
+    const boldIdx = experiment_aliases.findIndex(x => x === tgt)
+    const LENGTH_THRESHOLD = 10
+    const lineBrokenText = experiment_aliases.map(x => {
+        if (x.length > LENGTH_THRESHOLD) {
+            return x.slice(0, LENGTH_THRESHOLD) + "<br>" + x.slice(LENGTH_THRESHOLD)
+        } else {
+            return x
+        }
+    })
+
+    lineBrokenText[boldIdx] = `<b>${lineBrokenText[boldIdx]}</b>`
+    return lineBrokenText
+}
 
 
 const heatmapData = computed(() => ({
@@ -164,4 +177,19 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
                 style="width:100%;height:600px;" />
         </div>
     </div>
+
+    <InfoBox class="mt-3">
+        <ul>
+            <li>On the right is a heatmap of the Spearman correlation between every pair of compatible experiments in this
+                project.
+                On the left is a scatterplot between two experiments comparing the number of reads for each gene.</li>
+            <li>If there are multiple sets of compatible experiments, a 'Reference Group' toggle will appear to switch
+                between them.</li>
+            <li>Scroll to zoom or drag to pan in either the heatmap or the scatterplot.</li>
+            <li>By clicking a cell in the heatmap, the corresponding two experiments will be shown in the scatterplot.</li>
+            <li>Right clicking a gene point in the scatterplot will open up the gene in the UCSC genome browser. Select
+                either
+                the hg38 or the mm10 database at the top to enable this functionality.</li>
+        </ul>
+    </InfoBox>
 </template>

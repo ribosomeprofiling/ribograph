@@ -14,8 +14,8 @@ const props = defineProps<{
 const normalize = ref(false)
 const { sliderPositionsRaw, sliderPositions } = sliderLogic()
 
-const min = ref(15)
-const max = ref(40)
+const min = ref(100)
+const max = ref(0)
 
 const experiments = [...(new URLSearchParams(location.search)).keys()].map(x => +x)
 

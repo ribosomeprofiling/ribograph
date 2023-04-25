@@ -4,6 +4,7 @@ import LengthDistributionChart from '../components/LengthDistributionChart.vue'
 import RegionCountsChart from '../components/RegionCountsChart.vue'
 import CheckboxTooltip from '../components/CheckboxTooltip.vue'
 import MetageneCounts from '../components/MetageneCounts.vue'
+import InfoBox from '../components/InfoBox.vue'
 
 import { sliderLogic, getMetadata, sliderFormat, getMetageneCounts, apiDataComposable } from '../utils'
 import { setOffset, getOffsetComputed } from '../localStorageStore'
@@ -135,6 +136,23 @@ const autoInitializedValues = computed(() => {
                 :offsets="offsets" />
             <MetageneCounts :ids="[experiment]" :range="sliderPositions" type="stop" :normalize="normalize"
                 :offsets="offsets" />
+            <InfoBox class="mt-3">
+                The offset page allows you to apply P-site correction to an experiment's coverage plot.
+
+                <ul>
+                    <li>With autofocus on, when editing an offset value for a certain read length, only the data for that
+                        read length will display on the start and stop site plots.</li>
+                    <li>'Auto-Init' can automatically determine reasonable offset values by taking the peak of the
+                        start site plot from [-18, -6] and aligning it to 0. Note that this will overwrite current
+                        selections.
+                    </li>
+                    <li>'Reset' will initialize all offsets to 0, overwriting current selections.</li>
+                    <li>After editing the offsets, including when auto-initializing, <b>you must save for your changes to
+                            take effect</b>.
+                    </li>
+
+                </ul>
+            </InfoBox>
         </div>
     </div>
 </template>

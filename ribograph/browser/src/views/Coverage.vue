@@ -4,6 +4,7 @@ import CoveragePlot from '../components/CoveragePlot.vue'
 import { getGeneList, openGeneView, getExperimentList, openCoverageView } from '../utils'
 import SearchableList from '../components/SearchableList.vue';
 import CheckboxTooltip from '../components/CheckboxTooltip.vue';
+import InfoBox from '../components/InfoBox.vue';
 
 const props = defineProps<{
     experiment: number
@@ -99,4 +100,26 @@ const genome = ref("")
                 @secondary-select="openCoverageView($event.id)" />
         </div>
     </div>
+
+    <InfoBox class="mt-3">
+        The coverage view shows the distribution of the reads of a gene for one or more experiments.
+
+        <ul>
+            <li>Scroll to zoom into and drag to pan the coverage plot.</li>
+            <li>Select a gene in the left menu to display its coverage for this experiment. Right click a gene to open its
+                entry in the UCSC genome browser. Select
+                either the hg38 or the mm10 database at the top to enable this functionality.</li>
+            <li>Select more experiments to compare with the current one in the menu to the right. Right click an experiment to switch to
+                its coverage page.
+            </li>
+            <li>To display nucleotide level information alongside the coverage data, including amino acid labels on hover, 
+                an appropriate reference must be provided. For performance reasons, a full track labeling each
+                nucleotide is only available when zoomed in sufficiently.
+            </li>
+            <li>To apply P-site correction, edit the offsets by clicking 'Edit Offsets' and save them. Then, 
+                toggling 'Use offsets' will apply them to the coverage plot.
+            </li>
+
+        </ul>
+    </InfoBox>
 </template>
