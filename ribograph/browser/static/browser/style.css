@@ -62,14 +62,15 @@ html {
 }
 
 .add-fab {
-    width: 64px;
-    height: 64px;
+    /* width: 64px; */
+    /* height: 64px; */
     position: fixed;
     bottom: 52px;
     right: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 36px;
 }
 
 .table {
