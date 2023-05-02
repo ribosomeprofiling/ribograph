@@ -127,17 +127,23 @@ const scatterData = computed(() => ({
 
 function heatmapClick(data: Plotly.PlotMouseEvent) {
     let { x, y } = data.points[0]
+    x = x as string
+    y = y as string
 
     // x and y might be bolded, so we need to strip it out
     const boldMatcher = new RegExp("<b>(.*)<\/b>")
-    const xmatch = boldMatcher.exec(x as string);
-    const ymatch = boldMatcher.exec(y as string);
+    const xmatch = boldMatcher.exec(x);
+    const ymatch = boldMatcher.exec(y);
     if (xmatch) x = xmatch[1];
     if (ymatch) y = ymatch[1];
 
+    // remove potential line breaks
+    x = x.replace("<br>", "")
+    y = y.replace("<br>", "")
+
     // set selected experiments
-    e1.value = x as string
-    e2.value = y as string
+    e1.value = x
+    e2.value = y
 }
 
 function scatterClick(data: Plotly.PlotMouseEvent) {

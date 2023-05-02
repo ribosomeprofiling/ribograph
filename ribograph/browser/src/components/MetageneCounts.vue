@@ -48,10 +48,10 @@ interface MetageneCountsData {
 const { apiData } = apiDataComposable<MetageneCountsData>(props.ids, (id) => getMetageneCounts(id, props.type))
 
 const minPosition = computed(() => (Object.values(apiData).length > 0 ?
-    Math.min(...Object.values(apiData).map(x => x.columns[0])) : -50))
+    Math.min(...Object.values(apiData).filter(x => !!x).map(x => x.columns[0])) : -50))
 
 const maxPosition = computed(() => (Object.values(apiData).length > 0 ?
-    Math.max(...Object.values(apiData).map(x => x.columns[x.columns.length - 1])) : 50))
+    Math.max(...Object.values(apiData).filter(x => !!x).map(x => x.columns[x.columns.length - 1])) : 50))
 
 const data = computed(() => ({
     labels: generateRange(minPosition.value, maxPosition.value + 1),

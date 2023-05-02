@@ -12,17 +12,18 @@
             <a class="nav-link {% if request.resolver_match.url_name in "project_details" %}active{% endif %}"
                href="{% url 'browser:project_details' project.id %}">Overview</a>
         </li>
+        {# djlint:off #}
+        {# djlint messes up the following lines for some reason #}
         <li class="nav-item">
-            <a class="nav-link {% if experiments_exist is False %} disabled{% endif %} {% if request.resolver_match.url_name in "compare_experiments" %}active{% endif %}"
-               href="{% url 'browser:compare_experiments' project.id %}">Compare Experiments</a>
+            <a class="nav-link {% if experiments_exist is False %} disabled{% endif %} {% if request.resolver_match.url_name in "compare_experiments," %} active{% endif %}" href="{% url 'browser:compare_experiments' project.id %}">Compare Experiments</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if experiments_exist is False %} disabled{% endif %} {% if request.resolver_match.url_name in "gene_correlation" %}active{% endif %}"
-               href="{% url 'browser:gene_correlation' project.id %}">Gene Correlations</a>
-        </li>
-    </ul>
-    {% block content %}
-    {% endblock content %}
-    <a href="{% url 'browser:delete_project' project.id %}"
-       class="btn btn-outline-danger mt-4">Delete {{ project.name }}</a>
+            <a class="nav-link {% if experiments_exist is False %} disabled{% endif %} {% if request.resolver_match.url_name in "gene_correlation," %} active{% endif %}" href="{% url 'browser:gene_correlation' project.id %}">Gene Correlations</a>
+        {# djlint:on #}
+    </li>
+</ul>
+{% block content %}
+{% endblock content %}
+<a href="{% url 'browser:delete_project' project.id %}"
+   class="btn btn-outline-danger mt-4">Delete {{ project.name }}</a>
 {% endblock body %}

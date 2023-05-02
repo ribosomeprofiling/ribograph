@@ -73,6 +73,12 @@ Upload your ribo file. If you don't have any, you can download a sample file: [G
 
 ![Ribo File Upload](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/ribo_file_upload.jpg?raw=true)
 
+### Sample Data
+You can find more sample ribo files and references in  
+[this Github repository](https://github.com/ribosomeprofiling/ribograph_sampledata).
+
+It contains ribo files for human and mouse experiments, including ribo files containing multiple experiments.
+
 ### QC Plots
 
 Click on the experiment name to go to the QC page.
@@ -127,15 +133,10 @@ Click on the "Sequence" to view the nucleotide sequences.
 ### Gene Correlation Viewer
 Select "Open Gene Correlation" from a project page to open the gene correlation viewer. On the left will be a scatterplot comparing the gene frequencies in two different experiments. On the right will be a heatmap displaying the Speaman correlation of gene frequencies between each experiment and every other compatible experiment. By clicking on any cell in this heatmap, the corresponding scatterplot will be displayed to the left.
 
-Experiments are grouped by compatibility as determined by their reference digest (See Reference Compatibility for more information). If multiple compatible groups of experiments are available in a project, the gene correlation page will allow you to select between them.
+Experiments are grouped by compatibility as determined by their reference digest (See Reference Compatibility for more information). If multiple compatible groups of experiments are available in a project, the gene correlation page will allow you to select between them. To use this functionality, try adding experiments with [human](https://github.com/ribosomeprofiling/ribograph_sampledata/tree/main/human) and [mouse](https://github.com/ribosomeprofiling/ribograph_sampledata/tree/main/human) data to the same project.
 
 ### UCSC Genome Database Integration
 By right clicking on a gene name in the coverage search list or on a point in the gene correlation plot, you can open that gene's entry in the UCSC Genome Database. To enable this functionality, select either the 'hg38 (Homo sapiens)' or 'mm10 (Mus musculus)' database. You may have to enable pop-ups in your browser.
-
-### More Files
-
-You can find additional ribo files and references in the following Github repository:
-[https://github.com/ribosomeprofiling/ribograph_sampledata](https://github.com/ribosomeprofiling/ribograph_sampledata).
 
 ## Reference Compatibility
  
