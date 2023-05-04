@@ -48,7 +48,7 @@ def request_key(*args, **kwargs):
     Hashes an API request by its path. This is how we tell if a request is cached.
     """
     request = args[0]
-    return hashkey(request.get_full_path())
+    return hashkey(request.get_full_path(), request.user.is_authenticated)
 
 
 def make_experiment_api_registrar():
@@ -110,7 +110,7 @@ def make_project_api_registrar():
                 request = args[0]
                 assert "project_id" in kwargs and "experiment_id" not in kwargs
                 project = Project.objects.get(id=kwargs["project_id"])
-                if not (request.user or project.public):
+                if not (request.user.is_authenticated or project.public):
                     raise Http404
                 result = f(project, *args, **kwargs)
                 if not isinstance(result, HttpResponse):
@@ -271,6 +271,11 @@ def list_experiments(ribo, experiment: Experiment, request, *args, **kwargs):
     experiments = Experiment.objects.filter(
         reference_digest=experiment.reference_digest
     )
+    if not request.user.is_authenticated:
+        # if user isn't logged in, filter to only public projects
+        public_projects = Project.objects.filter(public=True)
+        experiments = experiments.filter(project__in=public_projects)
+
     return {
         "experiments": [
             {"id": x.id, "name": x.name, "project": x.project.name} for x in experiments
