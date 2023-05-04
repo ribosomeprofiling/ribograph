@@ -3,11 +3,17 @@
 {% load bootstrap5 %}
 {% block body %}
     <p class="fs-2">References</p>
-    <br>
-    <a href="{% url 'browser:add_reference'  %}"
-       class="btn btn-outline-primary">New Reference</a>
-    <br>
-    <br>
+    <a class="btn btn-primary p-3 add-fab fs-6"
+       href="{% url 'browser:add_reference' %}">
+        Add reference
+        <svg class="ms-2"
+             xmlns="http://www.w3.org/2000/svg"
+             width="20"
+             height="20"
+             viewBox="0 0 24 24">
+            <path fill="white" d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z" />
+        </svg>
+    </a>
     {% if references_exist %}
         {% render_table reference_table %}
     {% else %}
