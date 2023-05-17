@@ -18,8 +18,9 @@ RiboGraph runs entirely within a Docker container, and local development should 
 
 First, clone this repository.
 ```
-git clone https://github.com/ribosomeprofiling/ribograph.git
+git clone https://github.com/ribosomeprofiling/ribograph.git --config core.autocrlf=input
 ```
+The config option ensures Unix style line endings. If you opt not to add this option, you may run into problems with building the Docker image on Windows devices.
 
 Go to the Docker folder.
 
@@ -41,6 +42,7 @@ Once the container is ready, you can run the container.
 ```
 docker compose -f docker-compose_local.yml up
 ```
+Note you might run into issues on Windows when attempting to start the container due to Windows CRLF style line endings. Change the line endings for the .sh and .yml files in the Docker and Docker/web directory from CRLF to LF to fix these.
 
 We recommend using <a href="https://www.mozilla.org/">Firefox</a> for Ribograph. <a href="https://www.mozilla.org/">
 <img width="5%" src="https://github.com/ribosomeprofiling/ribograph/raw/main/docs/Firefox_logo,_2019.svg" alt="Firefox"></a>
@@ -73,12 +75,6 @@ Upload your ribo file. If you don't have any, you can download a sample file: [G
 
 ![Ribo File Upload](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/ribo_file_upload.jpg?raw=true)
 
-### Sample Data
-You can find more sample ribo files and references in  
-[this Github repository](https://github.com/ribosomeprofiling/ribograph_sampledata).
-
-It contains ribo files for human and mouse experiments, including ribo files containing multiple experiments.
-
 ### QC Plots
 
 Click on the experiment name to go to the QC page.
@@ -109,8 +105,6 @@ You can adjust the offset of each footprint length. Then you can save the offset
 
 ![Using gOffsets](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/use_offsets.jpg?raw=true)
 
-You can also auto-initialize reasonable offset values using the "Auto-Init" button. This will align the max value from [-18, -6] on the start site metagene plot to 0 for every read length. Note that these values still need to be saved before they can take effect on the coverage plot.
-
 ### Adding References
 
 To be able to view nucelotide sequences in the coverage plot, you need to associate the experiment with a reference.
@@ -130,13 +124,10 @@ Click on the "Sequence" to view the nucleotide sequences.
 
 ![Reference Page](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/view_nucleotides.jpg?raw=true)
 
-### Gene Correlation Viewer
-Select "Open Gene Correlation" from a project page to open the gene correlation viewer. On the left will be a scatterplot comparing the gene frequencies in two different experiments. On the right will be a heatmap displaying the Speaman correlation of gene frequencies between each experiment and every other compatible experiment. By clicking on any cell in this heatmap, the corresponding scatterplot will be displayed to the left.
+### More Files
 
-Experiments are grouped by compatibility as determined by their reference digest (See Reference Compatibility for more information). If multiple compatible groups of experiments are available in a project, the gene correlation page will allow you to select between them. To use this functionality, try adding experiments with [human](https://github.com/ribosomeprofiling/ribograph_sampledata/tree/main/human) and [mouse](https://github.com/ribosomeprofiling/ribograph_sampledata/tree/main/human) data to the same project.
-
-### UCSC Genome Database Integration
-By right clicking on a gene name in the coverage search list or on a point in the gene correlation plot, you can open that gene's entry in the UCSC Genome Database. To enable this functionality, select either the 'hg38 (Homo sapiens)' or 'mm10 (Mus musculus)' database. You may have to enable pop-ups in your browser.
+You can find additional ribo files and references in the following Github repository:
+[https://github.com/ribosomeprofiling/ribograph_sampledata](https://github.com/ribosomeprofiling/ribograph_sampledata).
 
 ## Reference Compatibility
  
