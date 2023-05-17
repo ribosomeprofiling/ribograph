@@ -6,7 +6,7 @@ import { throttle, isEqual } from 'lodash'
 
 const axios = setupCache(Axios);
 const toast = useToast()
-const BASE_URL = process.env.NODE_ENV === "development" ? "http://127.0.0.1:8000" : ""
+const BASE_URL = process.env.NODE_ENV === "development" ? "http://localhost:8000" : ""
 
 // https://stackoverflow.com/questions/43725419/converting-nucleotides-to-amino-acids-using-javascript
 const aminoDict: Record<string, string[]> = { 'A': ['GCA', 'GCC', 'GCG', 'GCT'], 'C': ['TGC', 'TGT'], 'D': ['GAC', 'GAT'], 'E': ['GAA', 'GAG'], 'F': ['TTC', 'TTT'], 'G': ['GGA', 'GGC', 'GGG', 'GGT'], 'H': ['CAC', 'CAT'], 'I': ['ATA', 'ATC', 'ATT'], 'K': ['AAA', 'AAG'], 'L': ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG'], 'M': ['ATG'], 'N': ['AAC', 'AAT'], 'P': ['CCA', 'CCC', 'CCG', 'CCT'], 'Q': ['CAA', 'CAG'], 'R': ['AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT'], 'S': ['AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT'], 'T': ['ACA', 'ACC', 'ACG', 'ACT'], 'V': ['GTA', 'GTC', 'GTG', 'GTT'], 'W': ['TGG'], 'Y': ['TAC', 'TAT'] };
@@ -37,7 +37,7 @@ async function handleAPICall(message: string, endpoint: string) {
     });
 
     try {
-        data = (await axios.get(BASE_URL + endpoint)).data // the actual data fetch
+        data = (await axios.get(BASE_URL + endpoint, { withCredentials: true })).data // the actual data fetch
     } catch (error) {
         // create an error message, defaulting to 'Unknown Error' if the error 
         // doesn't have an inbuilt message
