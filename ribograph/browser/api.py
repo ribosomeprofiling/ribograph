@@ -309,6 +309,8 @@ def get_gene_correlations(project: Project, request, *args, **kwargs):
     context = {
         "geneCounts": data[0].to_dict(),
         "correlations": data[1],
+        "min": int(data[2]),
+        "max": int(data[3])
         # "organism": data[2],
         # "genome": genome
     }
@@ -344,16 +346,25 @@ def gene_correlation_helper(
 
     # get gene cds counts for each ribo_object
     region_counts = []
+    min_range_min = 1000
+    max_range_max = -1
     for name, ribo in ribo_objects.items():
         df = get_region_counts_helper(ribo)
         if name in df and df is not None:
+            print("filtering read lengths...")
             # print(df.index)
             df["read_lengths"] = [x[1] for x in df.index]
-            df = df[df["read_lengths"] >= (range_lower or ribo.minimum_length)]
+            df = df[(df["read_lengths"] >= (range_lower or ribo.minimum_length))]
             df = df[df["read_lengths"] <= (range_upper or ribo.maximum_length)]
             summed_counts = df.groupby(["transcript"]).sum().get(name, None)
             if summed_counts is not None:
                 region_counts.append(summed_counts)
+        
+        if ribo.minimum_length < min_range_min:
+            min_range_min = ribo.minimum_length
+
+        if ribo.maximum_length > max_range_max:
+            max_range_max = ribo.maximum_length
 
     # get correlation coefficients for the heatmap
     correlations = generate_correlations(region_counts)
@@ -366,6 +377,8 @@ def gene_correlation_helper(
             )
         ),
         correlations,
+        min_range_min,
+        max_range_max
     )
 
 

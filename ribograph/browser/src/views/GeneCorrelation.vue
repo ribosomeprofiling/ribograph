@@ -50,6 +50,9 @@ function initCorrelations() {
 
     getGeneCorrelations(props.project, props.referenceHash, range_lower, range_upper).then(data => {
         if (data) {
+            min.value = data.min
+            max.value = data.max
+
             geneCounts.value = data.geneCounts
             experiments.value = Object.keys(data.geneCounts)
 
