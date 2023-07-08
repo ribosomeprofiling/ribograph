@@ -14,6 +14,7 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.gzip import gzip_page
+from django.views.decorators.cache import cache_control
 
 from .models import Experiment, Project, Reference
 from .Fasta import FastaFile
@@ -62,6 +63,7 @@ def make_experiment_api_registrar():
     def registrar(func):
         def api_decorator(f):
             @cached(cache=TTLCache(maxsize=128, ttl=600), key=request_key)
+            @cache_control(max_age=60 * 15)
             @gzip_page
             def wrapper(*args, **kwargs):
                 request = args[0]
@@ -105,6 +107,7 @@ def make_project_api_registrar():
     def registrar(func):
         def api_decorator(f):
             @cached(cache=TTLCache(maxsize=128, ttl=600), key=request_key)
+            @cache_control(max_age=60 * 15)
             @gzip_page
             def wrapper(*args, **kwargs):
                 request = args[0]
