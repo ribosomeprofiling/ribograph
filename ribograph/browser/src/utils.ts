@@ -82,9 +82,9 @@ export const getExperimentList = (experiment_id: number) => (
         `/api/experiment/${experiment_id}/listExperiments`)
 )
 
-export const getGeneCorrelations = (project_id: number, referenceHash: string) => (
+export const getGeneCorrelations = (project_id: number, referenceHash: string, range_lower: number, range_upper: number) => (
     handleAPICall(`Loading gene correlations`,
-        `/api/project/${project_id}/getGeneCorrelations?referenceHash=${referenceHash}`)
+        `/api/project/${project_id}/getGeneCorrelations?referenceHash=${referenceHash}&range_lower=${range_lower}&range_upper=${range_upper}`)
 )
 /////////////////////////
 /// CHART UTILITIES
@@ -276,14 +276,14 @@ export class DataArray2D extends DataArray<Array<number>>{
  * Returns sliderPositionsRaw, which can be directly connected to a vue-slider component,
  * and sliderPositions, a debounced version that can be hooked up to data intensive computed properties
  */
-export function sliderLogic() {
+export function sliderLogic(throttleDuration = 2000) {
     // TODO don't hardcode slider min and max
     const sliderPositionsRaw = ref([15, 40] as [number, number]) // slider positions as a tuple
     const sliderPositions = ref(sliderPositionsRaw.value)
 
     watch(sliderPositionsRaw, throttle((val) => {
         sliderPositions.value = val
-    }, 200, { leading: false }))
+    }, throttleDuration, { leading: false }))
 
     return { sliderPositionsRaw, sliderPositions }
 }

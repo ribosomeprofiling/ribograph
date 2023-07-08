@@ -291,8 +291,10 @@ def get_gene_correlations(project: Project, request, *args, **kwargs):
         return HttpResponseBadRequest(
             "reference hash must be provided as a url parameter"
         )
+    range_lower = int(request.GET.get("range_lower"))
+    range_upper = int(request.GET.get("range_upper"))
 
-    data = gene_correlation_helper(project, reference_hash)
+    data = gene_correlation_helper(project, reference_hash, range_lower, range_upper)
 
     if not data:
         return HttpResponse(status=400)
@@ -311,11 +313,13 @@ def get_gene_correlations(project: Project, request, *args, **kwargs):
     return JsonResponse(context)
 
 
-region_counts_cache = {}
+# region_counts_cache = {}
 
 
 @lru_cache()
-def gene_correlation_helper(project: Project, referenceHash: str):
+def gene_correlation_helper(
+    project: Project, referenceHash: str, range_lower, range_upper
+):
 
     # get a list of all experiment aliases in the study
     experiments = Experiment.objects.filter(project=project)
@@ -336,17 +340,21 @@ def gene_correlation_helper(project: Project, referenceHash: str):
     }
 
     # get gene cds counts for each ribo_object
-    region_counts = [
-        get_region_counts_helper(ribo).get(name, None)
-        for name, ribo in ribo_objects.items()
-    ]
-    # filter out None
-    region_counts = [x for x in region_counts if x is not None]
+    region_counts = []
+    for name, ribo in ribo_objects.items():
+        df = get_region_counts_helper(ribo)
+        if name in df and df is not None:
+            # print(df.index)
+            df["read_lengths"] = [x[1] for x in df.index]
+            df = df[df["read_lengths"] >= (range_lower or ribo.minimum_length)]
+            df = df[df["read_lengths"] <= (range_upper or ribo.maximum_length)]
+            summed_counts = df.groupby(["transcript"]).sum().get(name, None)
+            if summed_counts is not None:
+                region_counts.append(summed_counts)
 
     # get correlation coefficients for the heatmap
     correlations = generate_correlations(region_counts)
 
-    region_counts_cache.clear()  # clear the cache
     return (
         pd.DataFrame(
             reduce(
@@ -358,18 +366,21 @@ def gene_correlation_helper(project: Project, referenceHash: str):
     )
 
 
+def region_counts_helper_key(ribo):
+    return ribo._handle.filename
+
+
+@cached(cache=TTLCache(maxsize=128, ttl=600), key=region_counts_helper_key)
 def get_region_counts_helper(ribo):
     """
     A light caching wrapper around the Ribo.get_region_counts function
     """
-
-    key = ribo._handle.filename
-    if key not in region_counts_cache:
-        region_counts_cache[key] = ribo.get_region_counts(
-            "CDS", sum_references=False, alias=(ribo.alias != None)
-        )
-
-    return region_counts_cache[key]
+    return ribo.get_region_counts(
+        "CDS",
+        sum_references=False,
+        alias=(ribo.alias != None),
+        sum_lengths=False,
+    )
 
 
 def generate_correlations(region_counts):

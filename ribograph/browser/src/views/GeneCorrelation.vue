@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import { getGeneCorrelations, openGeneView } from '../utils'
 import { useToast, POSITION } from "vue-toastification";
 import type Plotly from '../plotly'
 
 import PlotlyPlot from '../components/PlotlyPlot.vue';
 import InfoBox from '../components/InfoBox.vue';
+import { sliderLogic, sliderFormat } from '../utils'
 
 const props = defineProps<{
     project: number,
@@ -31,10 +32,23 @@ const rho = computed(() => (
         : 0 // default to 0
 ))
 
+const { sliderPositionsRaw, sliderPositions } = sliderLogic(1500)
+// TODO make min and max real numbers from the backend
+const min = ref(15)
+const max = ref(40)
+const correlationsLoading = ref(true)
+
 const toast = useToast()
 onMounted(async () => {
     await nextTick() // this is needed to wait for the notification system to load in
-    getGeneCorrelations(props.project, props.referenceHash).then(data => {
+    initCorrelations()
+})
+
+function initCorrelations() {
+    correlationsLoading.value = true
+    const [range_lower, range_upper] = sliderPositions.value
+
+    getGeneCorrelations(props.project, props.referenceHash, range_lower, range_upper).then(data => {
         if (data) {
             geneCounts.value = data.geneCounts
             experiments.value = Object.keys(data.geneCounts)
@@ -53,8 +67,11 @@ onMounted(async () => {
             e1.value = experiments.value[0]
             e2.value = experiments.value[1]
         }
+        correlationsLoading.value = false
     })
-})
+}
+
+watch(sliderPositions, initCorrelations)
 
 const boldExperiment = (experiment_aliases: string[], tgt: string) => {
     const boldIdx = experiment_aliases.findIndex(x => x === tgt)
@@ -173,7 +190,7 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" :class="{opacity30: correlationsLoading}">
         <div class="col-xl-6 m-0 p-0">
             <PlotlyPlot :datasets="[scatterData]" :options="scatterOptions" @plotly_click="scatterClick($event)"
                 style="width:100%;height:600px;" />
@@ -182,6 +199,10 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
             <PlotlyPlot :datasets="[heatmapData]" :options="heatmapOptions" @plotly_click="heatmapClick($event)"
                 style="width:100%;height:600px;" />
         </div>
+    </div>
+
+    <div class="my-5">
+        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat" :disabled="correlationsLoading"/>
     </div>
 
     <InfoBox class="mt-3">
@@ -196,6 +217,13 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
             <li>Right clicking a gene point in the scatterplot will open up the gene in the UCSC genome browser. Select
                 either
                 the hg38 or the mm10 database at the top to enable this functionality.</li>
+            <li>Underneath the heatmap is a slider to filter read lengths. While new data is loading, the read length slider is disabled.</li>
         </ul>
     </InfoBox>
 </template>
+
+<style scoped>
+.opacity30 {
+    opacity: 0.3
+}
+</style>
