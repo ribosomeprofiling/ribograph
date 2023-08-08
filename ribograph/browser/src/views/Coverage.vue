@@ -47,6 +47,8 @@ const experimentSearchListData = computed(() => experimentList.value.map(x => ({
 
 const genome = ref("")
 
+const showSecondarySlider = ref(false)
+
 </script>
 
 <template>
@@ -59,12 +61,17 @@ const genome = ref("")
             Use Offsets
         </CheckboxTooltip>
 
-        <CheckboxTooltip class="me-auto ms-4 align-self-center" v-model="normalize"
+        <CheckboxTooltip class="ms-4 align-self-center" v-model="normalize"
             tooltip="Normalize values for each experiment to per 1,000 total reads">
             Normalize counts
         </CheckboxTooltip>
 
-        <div class="d-flex">
+        <CheckboxTooltip class="me-auto ms-4 align-self-center" v-model="showSecondarySlider"
+            tooltip="Displays a second slider to select a secondary set of read lengths">
+            Show secondary slider
+        </CheckboxTooltip>
+
+        <div class="d-flex mt-2">
             <div class="form-check ms-4 align-self-center">
                 <input class="form-check-input" type="radio" name="genome" id="hg38" value="hg38" v-model="genome">
                 <label class="form-check-label" for="hg38">
@@ -84,7 +91,7 @@ const genome = ref("")
     <div class="row">
         <div class="col-12">
             <CoveragePlot :gene="gene || ''" :ids="experiment ? [...experiments].map(x => parseInt(x)) : []"
-                :useOffsets="useOffsets" :normalize="normalize" />
+                :useOffsets="useOffsets" :normalize="normalize" :showSecondarySlider="showSecondarySlider"/>
         </div>
     </div>
 

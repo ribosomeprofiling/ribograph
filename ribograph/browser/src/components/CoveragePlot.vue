@@ -6,13 +6,15 @@ import { generateRange, CODON_DICT, getCoverageData, DataArray2D, sliderLogic, s
 import { getOffsetComputed } from '../localStorageStore'
 
 const { sliderPositionsRaw, sliderPositions } = sliderLogic()
+const { sliderPositionsRaw : sliderPositionsRawSecondary, sliderPositions: sliderPositionsSecondary } = sliderLogic()
 
 const props = defineProps<{
     gene: string, // the gene name
     ids: number[], // experiment ids
     geneSequence?: string[],
     useOffsets?: boolean,
-    normalize?: boolean
+    normalize?: boolean,
+    showSecondarySlider?: boolean
 }>()
 
 interface CoverageData {
@@ -91,13 +93,13 @@ const max = computed(() => coverageData.value.length > 0 ?
     Math.max(...coverageData.value.map(x => x.min + x.coverage.data.length - 1)) : 40)
 
 const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
-    const geneData: Partial<Plotly.PlotData>[] = coverageData.value
+    const geneDataFn = (positions: [number, number]) => coverageData.value
         .filter(x => x.gene === props.gene)
         .map(x => ({
             x: generateRange(0, x.coverage.columns.length),
             y: scaleData((new DataArray2D(x.coverage.data, x.min))
                 // sliceSum the data by the slider values
-                .sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null),
+                .sliceSum(...positions, props.useOffsets ? x.offset : null),
                 // reads per million per kilobase 
                 props.normalize ? 1_000 / x.totalReads : 1),
             // mode: 'lines+markers',
@@ -112,7 +114,15 @@ const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
             ...(geneSeqenceText.value) && { text: geneSeqenceText.value },
             textposition: 'none',
             // insidetextanchor: 'start'
-        }))
+        })) as Partial<Plotly.PlotData>[]
+    
+    let geneData = geneDataFn(sliderPositions.value)
+
+    if (props.showSecondarySlider) {
+        const secondaryGeneData = geneDataFn(sliderPositionsSecondary.value)
+        secondaryGeneData.map((x, i) => secondaryGeneData[i].name += " secondary" )
+        geneData = geneData.concat(secondaryGeneData)
+    }
 
     if (geneSequenceLabels.value) {
         geneData.unshift(geneSequenceLabels.value) // add gene labels to begning of array
@@ -257,6 +267,9 @@ function setTextViewState(eventdata: Plotly.PlotRelayoutEvent) {
 <template>
     <div class="my-5">
         <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat" />
+    </div>
+    <div class="my-5" v-if="showSecondarySlider">
+        <Slider v-model="sliderPositionsRawSecondary" :min="min" :max="max" :lazy="false" :format="sliderFormat" />
     </div>
     <PlotlyPlot :datasets="datasets" :options="options" @plotly_relayout="setTextViewState($event)" class="mb-4" />
 </template>
