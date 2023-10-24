@@ -49,7 +49,7 @@ function isSelected(id: string) {
 function selectOrUnselect(id: string) {
     if (isSelected(id)) {
         if (typeof selected.value === "string") {
-            selected.value = new Set()
+            selected.value = ""
         } else {
             selected.value.delete(id)
         }
