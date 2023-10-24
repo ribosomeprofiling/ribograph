@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  ribograph:
+    build: ./web
+    environment:
+       - DJANGO_ALLOWED_HOSTS=0.0.0.0 127.0.0.1 localhost 192.168.0.1
+       - CORS_ALLOWED_ORIGINS=http://0.0.0.0:8000
+       - RUN_VUE_SERVER=1
+    command: python manage.py runserver 0.0.0.0:8000 
+    volumes:
+      - ../:/home/ribograph/web/
+      - ./web/entrypoint_local_dev.sh:/usr/src/app/entrypoint.sh
+      - ./web/ribo_folder/:/data/ribo_files
+      - ./web/reference_folder/:/data/reference_files
+    ports:
+      - 8000:8000
+      - 5173:5173
+    env_file:
+      - ./web/.env.devel.env

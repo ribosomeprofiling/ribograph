@@ -11,8 +11,7 @@ umask 0000
 
 # we need to run npm development env for development.
 npm install
-npm run build
-# nohup npm run dev &
+nohup npm run dev &
 
 
 exec "$@"
