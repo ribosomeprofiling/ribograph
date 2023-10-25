@@ -9,7 +9,23 @@ Ribograph can deliver at a glance visualizations of QC information, such as read
  
 **RiboGraph** has been tested on Firefox and Safari and usage of these browsers are highly encouraged for RiboGraph.
 
----
+## Table of contents
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Adding a Project](#adding-a-project)
+    - [Upload Ribo File](#upload-ribo-file)
+    - [QC Plots](#qc-plots)
+    - [Coverage Plots](#coverage-plots)
+    - [P-Site Correction](#p-site-correction)
+    - [Adding References](#adding-references)
+    - [More Files](#more-files)
+  - [Reference Compatibility](#reference-compatibility)
+  - [Development](#development)
+    - [Docker Compose Files](#docker-compose-files)
+    - [Linting and formatting](#linting-and-formatting)
+    - [References](#references)
+  - [Implementation Notes](#implementation-notes)
+    - [Django HTTPS API](#django-https-api)
  
 ## Installation
 RiboGraph requires [Docker](https://docs.docker.com/install/). Here is a [tutorial for installing it on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04). If you're running into permission issues and being forced to run with sudo, [you might need to add yourself to the docker user group](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user).
@@ -52,8 +68,6 @@ If the container is built succesfully, you should see a welcome prompt asking yo
 
 ![Welcome Screen](https://github.com/ribosomeprofiling/ribograph/raw/main/docs/screenshots/welcome.jpg?raw=true)
  
-
----
 
 ## Usage
 
@@ -142,8 +156,10 @@ Reference hash sum is an experiment attribute and it is stored in the `reference
  
 
 
----
 ## Development 
+
+### Docker Compose Files
+Ribograph is composed of both a Django backend and a Vue frontend. With the `docker-compose_local.yml` file, the Django development server is started, but not the Vue development server. If you'd like a live reloading development server for the Vue files, use the `docker-compose_local_dev.yml` file.
 
 ### Linting and formatting
 We use [black](https://black.readthedocs.io/en/stable/) to format Python files and [djlint](https://www.djlint.com/) to format Django templates.
