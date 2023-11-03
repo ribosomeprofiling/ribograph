@@ -2,9 +2,9 @@
  
 <a href="https://github.com/ribosomeprofiling/ribograph"><img width="30%" src="https://github.com/ribosomeprofiling/ribograph/raw/main/docs/ribograph_logo.png" alt="RiboGraph"></a>
  
-RiboGraph is is an interactive web-based tool for browsing ribosome profiling data. As input, it takes [ribo files](https://ribopy.readthedocs.io/en/latest/ribo_file_format.html) that are generated using [Riboflow](https://github.com/ribosomeprofiling/riboflow) and uploaded via the browser. RiboGraph belongs to a [software ecosystem](https://ribosomeprofiling.github.io/) designed to work with ribosome profiling data.
- 
-Ribograph can deliver at a glance visualizations of QC information, such as read length distributions, region counts, and metagene plots, as well as in depth coverage plots for each gene.
+RiboGraph is an interactive, web-based visualization platform for analyzing ribosome profiling datasets. Users can upload ribosome profiling data using [ribo files](https://ribopy.readthedocs.io/en/latest/ribo_file_format.html) directly through the tool’s interface. These files are generated with [Riboflow](https://github.com/ribosomeprofiling/riboflow), part of a suite of applications found within a [software ecosystem](https://ribosomeprofiling.github.io/) designed to work with ribosome profiling data.
+
+RiboGraph provides immediate access to quality control (QC) visualizations, including read length distributions, regional RNA sequence counts, and metagene plots. Additionally, it offers detailed coverage maps for individual genes, and enabling comparative analysis between experiments. 
  
  
 **RiboGraph** has been tested on Firefox and Safari and usage of these browsers are highly encouraged for RiboGraph.
