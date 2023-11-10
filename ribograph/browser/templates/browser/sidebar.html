@@ -8,7 +8,7 @@
     <ul class="nav nav-pills flex-column sidebar-primary-list">
         <li class="nav-item">
             <a href="{% url 'browser:index' %}"
-               class="nav-link {% if request.resolver_match.url_name in "index,project_details,experiment_details,coverage" %}active{% endif %}"
+               class="nav-link {% if request.resolver_match.url_name in "index,project_details,experiment_details,coverage,gene_correlation,offset,compare_experiments" %}active{% endif %}"
                aria-current="page">Projects</a>
         </li>
         <li class="nav-item">
@@ -26,7 +26,7 @@
             <li class="mb-1">
                 <button class="btn btn-toggle align-items-center rounded collapsed"
                         data-bs-toggle="collapse"
-                        data-bs-target="#{{ current_project.name }}-collapse"
+                        data-bs-target="#collapse-{{ current_project.id }}"
                         aria-expanded="{% if current_project.id == project.id %}true{% else %}false{% endif %}">
                 </button>
                 <a href="{% url 'browser:project_details' project_id=current_project.id %}"
@@ -34,7 +34,7 @@
                     {{ current_project.name }}
                 </a>
                 <div class="collapse{% if current_project.id == project.id %} show{% endif %}"
-                     id="{{ current_project.name }}-collapse">
+                     id="collapse-{{ current_project.id }}">
                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                         {% for current_experiment in experiments %}
                             <li>

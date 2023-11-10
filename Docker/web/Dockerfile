@@ -4,7 +4,7 @@ FROM python:3.7
 ####  Install Required Packages  ##############################
 ###############################################################
 RUN apt-get update --fix-missing && \
-  apt-get install -q -y wget curl bzip2 libbz2-dev git build-essential zlib1g-dev locales vim fontconfig locales
+  apt-get install -q -y wget curl bzip2 libbz2-dev git build-essential zlib1g-dev locales vim fontconfig locales gfortran libopenblas-dev liblapack-dev
 
 # Install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \

@@ -1,5 +1,5 @@
 from .models import Project, Experiment
-
+import os
 
 def get_user_projects(request):
     """
@@ -27,5 +27,6 @@ def debug_mode(request):
         and (
             request.META["HTTP_HOST"].split(":")[0]
             in request.META["DJANGO_ALLOWED_HOSTS"]
-        )
+        ),
+        "RUN_VUE_SERVER": os.getenv('RUN_VUE_SERVER')
     }

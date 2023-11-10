@@ -14,6 +14,7 @@ from django.http import (
     HttpResponseNotFound,
 )
 from django.views.decorators.gzip import gzip_page
+from django.views.decorators.cache import cache_control
 
 from .models import Experiment, Project, Reference
 from .Fasta import FastaFile
@@ -23,12 +24,14 @@ from ribopy import Ribo
 from ribopy.core.get_gadgets import get_region_boundaries, get_reference_names
 import time
 
+
 def camelCase(st: str):
     """
     Convert a given string to camelCase
     """
     output = "".join(x for x in st.title() if x.isalnum())
     return output[0].lower() + output[1:]
+
 
 @cached(cache=TTLCache(maxsize=64, ttl=300))
 def get_ribo(experiment: Experiment) -> Ribo:
@@ -46,13 +49,13 @@ def request_key(*args, **kwargs):
     Hashes an API request by its path. This is how we tell if a request is cached.
     """
     request = args[0]
-    return hashkey(request.get_full_path())
+    return hashkey(request.get_full_path(), request.user.is_authenticated)
 
 
 def make_experiment_api_registrar():
     """
     Returns a decorator that wraps experiment level APIs. This decorater
-    centralizes some common logic, including getting the ribo and experiment 
+    centralizes some common logic, including getting the ribo and experiment
     objects, authenticating requests, and caching responses.
     """
     registry = {}
@@ -60,6 +63,7 @@ def make_experiment_api_registrar():
     def registrar(func):
         def api_decorator(f):
             @cached(cache=TTLCache(maxsize=128, ttl=600), key=request_key)
+            @cache_control(max_age=60 * 15)
             @gzip_page
             def wrapper(*args, **kwargs):
                 request = args[0]
@@ -103,12 +107,13 @@ def make_project_api_registrar():
     def registrar(func):
         def api_decorator(f):
             @cached(cache=TTLCache(maxsize=128, ttl=600), key=request_key)
+            @cache_control(max_age=60 * 15)
             @gzip_page
             def wrapper(*args, **kwargs):
                 request = args[0]
                 assert "project_id" in kwargs and "experiment_id" not in kwargs
                 project = Project.objects.get(id=kwargs["project_id"])
-                if not request.user or project.public:
+                if not (request.user.is_authenticated or project.public):
                     raise Http404
                 result = f(project, *args, **kwargs)
                 if not isinstance(result, HttpResponse):
@@ -117,7 +122,7 @@ def make_project_api_registrar():
 
             return wrapper
 
-        registry[func.__name__] = api_decorator(func)
+        registry[camelCase(func.__name__)] = api_decorator(func)
         return api_decorator(func)
 
     registrar.all = registry
@@ -125,7 +130,7 @@ def make_project_api_registrar():
 
 
 register_experiment_api = make_experiment_api_registrar()
-register_project_api = make_experiment_api_registrar()
+register_project_api = make_project_api_registrar()
 
 
 @register_experiment_api
@@ -243,9 +248,7 @@ def get_coverage(ribo, experiment: Experiment, request, *args, **kwargs):
     """
     gene = request.GET.get("gene")
     if gene is None:
-        return HttpResponseBadRequest(
-            "gene name must be provided as a url parameter"
-        )
+        return HttpResponseBadRequest("gene name must be provided as a url parameter")
     cds_range = get_cds_range_lookup(ribo)[gene][1]
     df = ribo.get_transcript_coverage(
         experiment.name, alias=(ribo.alias != None), transcript=gene
@@ -271,6 +274,11 @@ def list_experiments(ribo, experiment: Experiment, request, *args, **kwargs):
     experiments = Experiment.objects.filter(
         reference_digest=experiment.reference_digest
     )
+    if not request.user.is_authenticated:
+        # if user isn't logged in, filter to only public projects
+        public_projects = Project.objects.filter(public=True)
+        experiments = experiments.filter(project__in=public_projects)
+
     return {
         "experiments": [
             {"id": x.id, "name": x.name, "project": x.project.name} for x in experiments
@@ -279,5 +287,138 @@ def list_experiments(ribo, experiment: Experiment, request, *args, **kwargs):
 
 
 @register_project_api
-def get_gene_correlations(project: Project, *args, **kwargs):
-    ...
+def get_gene_correlations(project: Project, request, *args, **kwargs):
+
+    reference_hash = request.GET.get("referenceHash")
+    if reference_hash is None:
+        return HttpResponseBadRequest(
+            "reference hash must be provided as a url parameter"
+        )
+    range_lower = int(request.GET.get("range_lower"))
+    range_upper = int(request.GET.get("range_upper"))
+
+    data = gene_correlation_helper(project, reference_hash, range_lower, range_upper)
+
+    if not data:
+        return HttpResponse(status=400)
+
+    ORGANISM_GENOME_MAP = {"Homo sapiens": "hg38", "Mus musculus": "mm10"}
+
+    # genome = ORGANISM_GENOME_MAP.get(data[2])
+
+    context = {
+        "geneCounts": data[0].to_dict(),
+        "correlations": data[1],
+        "min": int(data[2]),
+        "max": int(data[3])
+        # "organism": data[2],
+        # "genome": genome
+    }
+
+    return JsonResponse(context)
+
+
+# region_counts_cache = {}
+
+
+@lru_cache()
+def gene_correlation_helper(
+    project: Project, referenceHash: str, range_lower, range_upper
+):
+
+    # get a list of all experiment aliases in the study
+    experiments = Experiment.objects.filter(project=project)
+    if len(experiments) == 0:
+        return None
+
+    # organisms = [x.organism for x in experiments]
+    # if all(x == organisms[0] for x in organisms):  # if all organisms are the same
+    #     organism = organisms[0]
+    # else:
+    #     organism = None
+
+    # create a dict of experiment alias : ribo_object
+    ribo_objects = {
+        experiment.name: get_ribo(experiment)
+        for experiment in experiments
+        if experiment.reference_digest == referenceHash
+    }
+
+    # get gene cds counts for each ribo_object
+    region_counts = []
+    min_range_min = 1000
+    max_range_max = -1
+    for name, ribo in ribo_objects.items():
+        df = get_region_counts_helper(ribo)
+        if name in df and df is not None:
+            print("filtering read lengths...")
+            # print(df.index)
+            df["read_lengths"] = [x[1] for x in df.index]
+            df = df[(df["read_lengths"] >= (range_lower or ribo.minimum_length))]
+            df = df[df["read_lengths"] <= (range_upper or ribo.maximum_length)]
+            summed_counts = df.groupby(["transcript"]).sum().get(name, None)
+            if summed_counts is not None:
+                region_counts.append(summed_counts)
+        
+        if ribo.minimum_length < min_range_min:
+            min_range_min = ribo.minimum_length
+
+        if ribo.maximum_length > max_range_max:
+            max_range_max = ribo.maximum_length
+
+    # get correlation coefficients for the heatmap
+    correlations = generate_correlations(region_counts)
+
+    return (
+        pd.DataFrame(
+            reduce(
+                lambda x, y: pd.merge(x, y, left_index=True, right_index=True),
+                region_counts,
+            )
+        ),
+        correlations,
+        min_range_min,
+        max_range_max
+    )
+
+
+def region_counts_helper_key(ribo):
+    return ribo._handle.filename
+
+
+@cached(cache=TTLCache(maxsize=128, ttl=600), key=region_counts_helper_key)
+def get_region_counts_helper(ribo):
+    """
+    A light caching wrapper around the Ribo.get_region_counts function
+    """
+    return ribo.get_region_counts(
+        "CDS",
+        sum_references=False,
+        alias=(ribo.alias != None),
+        sum_lengths=False,
+    )
+
+
+def generate_correlations(region_counts):
+    """
+    Generate a square matrix of spearman correlation coefficients between gene region counts
+    """
+
+    n = len(region_counts)
+
+    # init a blank square array
+    correlations = [[None for _ in range(n)] for _ in range(n)]
+
+    # fill in the diagonal
+    for i in range(n):
+        correlations[i][i] = 1
+
+    # fill in other values
+    for i in range(n):
+        for j in range(i):
+            c = spearmanr(region_counts[i], region_counts[j]).correlation
+            # symmetric values
+            correlations[i][j] = c
+            correlations[j][i] = c
+
+    return correlations

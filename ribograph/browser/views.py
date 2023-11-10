@@ -56,10 +56,38 @@ def index(request):
     return render(request, "browser/index.html")
 
 
+def is_public_project(project_id: int):
+    public_projects = Project.objects.filter(public=True)
+    return project_id in [project.id for project in public_projects]
+
+
+def verify_user_access(view_function):
+    """
+    Allow information about public projects to be displayed regardless if
+    a user is logged in or not. If the project is not public, require user
+    to log in to access.
+    """
+
+    def _wrapped_view(*args, **kwargs):
+        request = args[0]
+        if request.method != "GET":
+            return login_required(view_function)(*args, **kwargs)
+        if "experiment_id" in kwargs:
+            experiment = Experiment.objects.get(id=kwargs["experiment_id"])
+            if is_public_project(experiment.project.id):
+                return view_function(*args, **kwargs)
+        elif "project_id" in kwargs:
+            if is_public_project(kwargs["project_id"]):
+                return view_function(*args, **kwargs)
+        return login_required(view_function)(*args, **kwargs)
+
+    return _wrapped_view
+
+
 #############################################################################
 
 
-@login_required
+@verify_user_access
 def coverage(request, experiment_id):
     this_experiment = Experiment.objects.get(id=experiment_id)
     this_project = this_experiment.project
@@ -82,7 +110,7 @@ def coverage(request, experiment_id):
     return render(request, "browser/coverage.html", context)
 
 
-@login_required
+@verify_user_access
 def offset(request, experiment_id):
     this_experiment = Experiment.objects.get(id=experiment_id)
     this_project = this_experiment.project
@@ -92,6 +120,52 @@ def offset(request, experiment_id):
         "experiment": this_experiment,
     }
     return render(request, "browser/offset.html", context)
+
+
+def get_correlation_groups(project_id):
+    return list(
+        {e.reference_digest for e in Experiment.objects.filter(project_id=project_id)}
+    )
+
+
+@verify_user_access
+def gene_correlation_redirect(request, project_id):
+    reference_hashes = get_correlation_groups(project_id)
+
+    if len(reference_hashes) > 0:
+        reference_hash = reference_hashes[0]
+    else:
+        reference_hash = None
+
+    return HttpResponseRedirect(
+        reverse("browser:gene_correlation", args=[project_id, reference_hash])
+    )
+
+
+@verify_user_access
+def gene_correlation(request, project_id, reference_hash):
+    this_project = Project.objects.get(id=project_id)
+
+    # set of the different unique hash digests in this project
+    context = {
+        "project": this_project,
+        "correlation_groups": get_correlation_groups(project_id),
+        "reference_hash": reference_hash,
+    }
+
+    if reference_hash not in context["correlation_groups"]:
+        raise Http404
+
+    return render(request, "browser/gene_correlation.html", context)
+
+
+@verify_user_access
+def compare_experiments(request, project_id):
+    project = Project.objects.get(id=project_id)
+    experiments = Experiment.objects.filter(project=project_id)
+    context = {"project": project, "experiments": experiments}
+
+    return render(request, "browser/compare_experiments.html", context)
 
 
 @login_required
@@ -114,7 +188,7 @@ def add_project(request):
     return render(request, "browser/add_project.html", context)
 
 
-@login_required
+@verify_user_access
 def project_details(request, project_id):
     context = {}
     return render(request, "browser/project_details.html", context)
@@ -145,7 +219,7 @@ def add_admin_user(request):
     return render(request, "browser/add_admin_user.html", context)
 
 
-@login_required
+@verify_user_access
 def project_details(request, project_id):
     this_project = Project.objects.get(id=project_id)
     experiments = Experiment.objects.filter(project=this_project)
@@ -335,7 +409,7 @@ def validate_ribo_file(ribo_file):
 ##########################################################################
 
 
-@login_required
+@verify_user_access
 def experiment_details(request, experiment_id):
     this_experiment = Experiment.objects.get(id=experiment_id)
     this_project = this_experiment.project
@@ -363,6 +437,7 @@ def experiment_details(request, experiment_id):
 ##########################################################################
 
 
+@verify_user_access
 def download_ribo(request, experiment_id):
     this_experiment = Experiment.objects.get(id=experiment_id)
     this_project = this_experiment.project
@@ -382,6 +457,7 @@ def download_ribo(request, experiment_id):
 ##########################################################################
 
 
+@login_required
 def delete_experiment(request, experiment_id):
     context = dict()
 
@@ -408,9 +484,8 @@ def _erase_experiment(this_experiment):
         os.remove(experiment_ribo_file)
 
 
+@login_required
 def erase_experiment(request, experiment_id):
-    # TODO: MAke sure that the user has the right to delete
-
     context = dict()
 
     this_experiment = Experiment.objects.get(id=experiment_id)
@@ -426,6 +501,7 @@ def erase_experiment(request, experiment_id):
 ##########################################################################
 
 
+@login_required
 def delete_project(request, project_id):
     context = dict()
 
@@ -437,6 +513,7 @@ def delete_project(request, project_id):
 ##########################################################################
 
 
+@login_required
 def erase_project(request, project_id):
     this_project = Project.objects.get(id=project_id)
 
@@ -453,6 +530,7 @@ def erase_project(request, project_id):
 ##########################################################################
 
 
+@login_required
 def edit_project_description(request, project_id):
 
     this_project = Project.objects.get(id=project_id)
@@ -660,6 +738,7 @@ def erase_reference(request, reference_id):
 #############################################################################
 
 
+@login_required
 def erase_reference(request, error_message):
 
     context = {"error_message": error_message}

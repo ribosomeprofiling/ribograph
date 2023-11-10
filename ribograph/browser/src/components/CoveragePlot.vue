@@ -2,16 +2,19 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import PlotlyPlot from './PlotlyPlot.vue'
 import type Plotly from '../plotly'
-import { generateRange, CODON_DICT, getCoverageData, DataArray2D, sliderLogic } from '../utils'
+import { generateRange, CODON_DICT, getCoverageData, DataArray2D, sliderLogic, sliderFormat, scaleData } from '../utils'
 import { getOffsetComputed } from '../localStorageStore'
 
 const { sliderPositionsRaw, sliderPositions } = sliderLogic()
+const { sliderPositionsRaw : sliderPositionsRawSecondary, sliderPositions: sliderPositionsSecondary } = sliderLogic()
 
 const props = defineProps<{
     gene: string, // the gene name
     ids: number[], // experiment ids
     geneSequence?: string[],
-    useOffsets?: boolean
+    useOffsets?: boolean,
+    normalize?: boolean,
+    showSecondarySlider?: boolean
 }>()
 
 interface CoverageData {
@@ -54,9 +57,29 @@ watch(() => props.gene, () => {
     updateCoverageData()
 })
 
-// assume experiment ids can only be appended
 watch(() => props.ids, (newIds, oldIds) => {
-    if (newIds.length != 1 && newIds.length > oldIds.length) {
+    if (!props.gene) {
+        return
+    }
+
+    if (newIds.length < oldIds.length) {
+        // an experiment was removed
+        const removedIds = oldIds.filter(x => !newIds.includes(x))
+        // traverse the coverageIds list backwards so we don't mess with future indices 
+        for (let i = coverageData.value.length - 1; i >= 0; i--) {
+            if (removedIds.includes(coverageData.value[i].id)) {
+                coverageData.value.splice(i, 1) // delete the element
+            }
+        }
+    } else if (newIds.length > oldIds.length) {
+        // an experiment was added
+        if (newIds.length == 1) {
+            if (coverageData.value.find(x => x.id === newIds[0])) {
+                // value is already contained in the list, exit early
+                return
+            }
+        }
+        // an experiment was added
         addExperiment(newIds[newIds.length - 1])
     }
 })
@@ -64,19 +87,21 @@ watch(() => props.ids, (newIds, oldIds) => {
 const cdsRange = computed(() => coverageData.value.length > 0 ? coverageData.value[0].cdsRange : null)
 
 
-const min = computed(() => coverageData.value.length > 0 ? 
+const min = computed(() => coverageData.value.length > 0 ?
     Math.min(...coverageData.value.map(x => x.min)) : 15)
-const max = computed(() => coverageData.value.length > 0 ? 
+const max = computed(() => coverageData.value.length > 0 ?
     Math.max(...coverageData.value.map(x => x.min + x.coverage.data.length - 1)) : 40)
 
 const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
-    const geneData: Partial<Plotly.PlotData>[] = coverageData.value
+    const geneDataFn = (positions: [number, number]) => coverageData.value
         .filter(x => x.gene === props.gene)
         .map(x => ({
             x: generateRange(0, x.coverage.columns.length),
-            y: (new DataArray2D(x.coverage.data, x.min))
+            y: scaleData((new DataArray2D(x.coverage.data, x.min))
                 // sliceSum the data by the slider values
-                .sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null),
+                .sliceSum(...positions, props.useOffsets ? x.offset : null),
+                // reads per million per kilobase 
+                props.normalize ? 1_000 / x.totalReads : 1),
             // mode: 'lines+markers',
             type: 'bar',
             name: x.experiment,
@@ -89,7 +114,15 @@ const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
             ...(geneSeqenceText.value) && { text: geneSeqenceText.value },
             textposition: 'none',
             // insidetextanchor: 'start'
-        }))
+        })) as Partial<Plotly.PlotData>[]
+    
+    let geneData = geneDataFn(sliderPositions.value)
+
+    if (props.showSecondarySlider) {
+        const secondaryGeneData = geneDataFn(sliderPositionsSecondary.value)
+        secondaryGeneData.map((x, i) => secondaryGeneData[i].name += " secondary" )
+        geneData = geneData.concat(secondaryGeneData)
+    }
 
     if (geneSequenceLabels.value) {
         geneData.unshift(geneSequenceLabels.value) // add gene labels to begning of array
@@ -106,7 +139,7 @@ const options = computed<Partial<Plotly.Layout>>(() => ({
     },
     showlegend: true,
     legend: { "orientation": "h" },
-    margin: { t: 40, b: 50, l: 30, r: 0 },
+    margin: { t: 40, b: 50, l: 40, r: 0 },
     yaxis: {
         bargap: 0,
         fixedrange: true
@@ -166,8 +199,14 @@ const geneSeqenceText = computed<string[]>(() => {
     return geneSequenceText
 })
 
-// find the maximum value across all data
-const maxValue = computed<number>(() => Math.max(...coverageData.value.map(x => x.coverage.data).flat(2)))
+// find the maximum value across all data within slider bounds
+const maxValue = computed<number>(() => {
+    const coverageSumSlice = coverageData.value.map(x =>
+        (new DataArray2D(x.coverage.data, x.min)).sliceSum(...sliderPositions.value, props.useOffsets ? x.offset : null))
+    const scaledCoverageSlice = coverageSumSlice.map(
+        (x, i) => scaleData(x, props.normalize ? 1_000 / coverageData.value[i].totalReads : 1))
+    return Math.max(...scaledCoverageSlice.flat(2))
+})
 
 /**
  * Return an array of color strings in parallel with the geneSequence.
@@ -192,7 +231,7 @@ function makeColorArray(length: number, cdsRange: [number, number]) {
 }
 
 const viewSize = ref(Infinity)
-const GENE_VIEW_THRESHOLD = 45
+const GENE_VIEW_THRESHOLD = 50
 
 const geneSequenceLabels = computed<Partial<Plotly.PlotData> | null>(() =>
     geneSequence.value &&
@@ -201,7 +240,7 @@ const geneSequenceLabels = computed<Partial<Plotly.PlotData> | null>(() =>
             x: generateRange(0, geneSequence.value.length),
             // fill the label array with the max value * some negative constant 
             // so that they take up a constant proportion of the width
-            y: Array(geneSequence.value.length).fill(-0.2 * maxValue.value),
+            y: Array(geneSequence.value.length).fill(-0.1 * maxValue.value),
             type: 'bar',
             name: 'Sequence',
             marker: {
@@ -227,7 +266,10 @@ function setTextViewState(eventdata: Plotly.PlotRelayoutEvent) {
 
 <template>
     <div class="my-5">
-        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" />
+        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat" />
+    </div>
+    <div class="my-5" v-if="showSecondarySlider">
+        <Slider v-model="sliderPositionsRawSecondary" :min="min" :max="max" :lazy="false" :format="sliderFormat" />
     </div>
     <PlotlyPlot :datasets="datasets" :options="options" @plotly_relayout="setTextViewState($event)" class="mb-4" />
 </template>

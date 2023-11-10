@@ -6,7 +6,7 @@ import { throttle, isEqual } from 'lodash'
 
 const axios = setupCache(Axios);
 const toast = useToast()
-const BASE_URL = process.env.NODE_ENV === "development" ? "http://127.0.0.1:8000" : ""
+const BASE_URL = process.env.NODE_ENV === "development" ? "http://localhost:8000" : ""
 
 // https://stackoverflow.com/questions/43725419/converting-nucleotides-to-amino-acids-using-javascript
 const aminoDict: Record<string, string[]> = { 'A': ['GCA', 'GCC', 'GCG', 'GCT'], 'C': ['TGC', 'TGT'], 'D': ['GAC', 'GAT'], 'E': ['GAA', 'GAG'], 'F': ['TTC', 'TTT'], 'G': ['GGA', 'GGC', 'GGG', 'GGT'], 'H': ['CAC', 'CAT'], 'I': ['ATA', 'ATC', 'ATT'], 'K': ['AAA', 'AAG'], 'L': ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG'], 'M': ['ATG'], 'N': ['AAC', 'AAT'], 'P': ['CCA', 'CCC', 'CCG', 'CCT'], 'Q': ['CAA', 'CAG'], 'R': ['AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT'], 'S': ['AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT'], 'T': ['ACA', 'ACC', 'ACG', 'ACT'], 'V': ['GTA', 'GTC', 'GTG', 'GTT'], 'W': ['TGG'], 'Y': ['TAC', 'TAT'] };
@@ -37,7 +37,7 @@ async function handleAPICall(message: string, endpoint: string) {
     });
 
     try {
-        data = (await axios.get(BASE_URL + endpoint)).data // the actual data fetch
+        data = (await axios.get(BASE_URL + endpoint, { withCredentials: true })).data // the actual data fetch
     } catch (error) {
         // create an error message, defaulting to 'Unknown Error' if the error 
         // doesn't have an inbuilt message
@@ -54,32 +54,37 @@ async function handleAPICall(message: string, endpoint: string) {
 
 export const getMetadata = (experiment_id: number) => (
     handleAPICall(`Loading Metadata`,
-        `/api/${experiment_id}/getMetadata`))
+        `/api/experiment/${experiment_id}/getMetadata`))
 
 export const getRegionPercentages = (experiment_id: number) => (
     handleAPICall(`Loading Region Percentages`,
-        `/api/${experiment_id}/getRegionPercentages`))
+        `/api/experiment/${experiment_id}/getRegionPercentages`))
 
 export const getLengthDistribution = (experiment_id: number) => (
     handleAPICall(`Loading Length Distribution`,
-        `/api/${experiment_id}/getLengthDistribution`))
+        `/api/experiment/${experiment_id}/getLengthDistribution`))
 
 export const getMetageneCounts = (experiment_id: number, site: 'start' | 'stop') => (
     handleAPICall(`Loading ${site[0].toUpperCase() + site.slice(1)} Site Metagene Counts`,
-        `/api/${experiment_id}/getMetageneCounts?site=${site}`))
+        `/api/experiment/${experiment_id}/getMetageneCounts?site=${site}`))
 
 export const getGeneList = (experiment_id: number) => (
     handleAPICall(`Loading Gene List`,
-        `/api/${experiment_id}/listGenes`))
+        `/api/experiment/${experiment_id}/listGenes`))
 
 export const getCoverageData = (experiment_id: number, gene: string) => (
     handleAPICall(`Loading ${gene} for experiment ${experiment_id}`,
-        `/api/${experiment_id}/getCoverage?gene=${gene}`)
+        `/api/experiment/${experiment_id}/getCoverage?gene=${gene}`)
 )
 
 export const getExperimentList = (experiment_id: number) => (
     handleAPICall(`Loading experiment list`,
-        `/api/${experiment_id}/listExperiments`)
+        `/api/experiment/${experiment_id}/listExperiments`)
+)
+
+export const getGeneCorrelations = (project_id: number, referenceHash: string, range_lower: number, range_upper: number) => (
+    handleAPICall(`Loading gene correlations`,
+        `/api/project/${project_id}/getGeneCorrelations?referenceHash=${referenceHash}&range_lower=${range_lower}&range_upper=${range_upper}`)
 )
 /////////////////////////
 /// CHART UTILITIES
@@ -123,6 +128,8 @@ export function openGeneView(gene: string, genome?: string): void {
 export function openCoverageView(experiment_id: number) {
     window.open(`/${experiment_id}/coverage`, "_self")
 }
+
+export const sliderFormat = { 'suffix': 'nt' }
 
 
 /////////////////////////////
@@ -269,14 +276,14 @@ export class DataArray2D extends DataArray<Array<number>>{
  * Returns sliderPositionsRaw, which can be directly connected to a vue-slider component,
  * and sliderPositions, a debounced version that can be hooked up to data intensive computed properties
  */
-export function sliderLogic() {
+export function sliderLogic(throttleDuration = 2000) {
     // TODO don't hardcode slider min and max
     const sliderPositionsRaw = ref([15, 40] as [number, number]) // slider positions as a tuple
     const sliderPositions = ref(sliderPositionsRaw.value)
 
     watch(sliderPositionsRaw, throttle((val) => {
         sliderPositions.value = val
-    }, 200, { leading: false }))
+    }, throttleDuration, { leading: false }))
 
     return { sliderPositionsRaw, sliderPositions }
 }

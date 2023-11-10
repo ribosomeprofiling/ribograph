@@ -135,5 +135,4 @@ ribograph/browser/migrations/*
 Docker/web/ribo_folder/*
 Docker/web/reference_folder/*
 node_modules/*
-src2/
 ribograph/browser/static/browser/vuefiles/*

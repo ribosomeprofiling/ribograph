@@ -1,0 +1,18 @@
+{% extends "browser/project_base.html" %}
+{% load bootstrap5 %}
+{% block content %}
+    {% if correlation_groups|length > 1 %}
+        <div class="fs-5 mt-2 mb-1">Reference Group</div>
+        <div class="btn-group ml-2" role="group" aria-label="First group">
+            {% for hash in correlation_groups %}
+                {% if hash == reference_hash %}
+                    <button type="button" class="btn btn-primary">{{ forloop.counter }}</button>
+                {% else %}
+                    <a class="btn btn-secondary"
+                       href="{% url 'browser:gene_correlation' project.id hash %}">{{ forloop.counter }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% include "browser/vue_app.html" %}
+{% endblock content %}
