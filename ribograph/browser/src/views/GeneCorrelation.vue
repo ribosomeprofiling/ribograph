@@ -16,6 +16,7 @@ const props = defineProps<{
 const correlations = ref<number[][]>([])
 const geneCounts = ref<Record<string, Record<string, number>>>({}) // {experiment : {gene : frequency}}
 const genome = ref<string>("")
+const mode = ref(0)
 const experiments = ref<string[]>([])
 
 // selected experiments
@@ -48,7 +49,7 @@ function initCorrelations() {
     correlationsLoading.value = true
     const [range_lower, range_upper] = sliderPositions.value
 
-    getGeneCorrelations(props.project, props.referenceHash, range_lower, range_upper).then(data => {
+    getGeneCorrelations(props.project, props.referenceHash, range_lower, range_upper, mode.value).then(data => {
         if (data) {
             min.value = data.min
             max.value = data.max
@@ -75,6 +76,7 @@ function initCorrelations() {
 }
 
 watch(sliderPositions, initCorrelations)
+watch(mode, initCorrelations)
 
 const boldExperiment = (experiment_aliases: string[], tgt: string) => {
     const boldIdx = experiment_aliases.findIndex(x => x === tgt)
@@ -180,6 +182,25 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
 
 <template>
     <div class="form-group mt-3 mb-3">
+        <label class="fs-5">Show Ribo/RNA-Seq</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="show_ribo_rna" id="ribo_only" value="0" v-model="mode">
+                <label class="form-check-label" for="ribo_only">Ribo Only</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="show_ribo_rna" id="rna_seq_only" value="1" v-model="mode">
+                <label class="form-check-label" for="rna_seq_only">RNA-Seq Only</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="show_ribo_rna" id="both" value="2" v-model="mode">
+                <label class="form-check-label" for="both">Ribo and RNA-Seq</label>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group mt-3 mb-3">
         <label class="fs-5">UCSC Genome DB Lookup</label>
         <div>
             <div class="form-check form-check-inline">
@@ -193,7 +214,7 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
         </div>
     </div>
 
-    <div class="row" :class="{opacity30: correlationsLoading}">
+    <div class="row" :class="{ opacity30: correlationsLoading }">
         <div class="col-xl-6 m-0 p-0">
             <PlotlyPlot :datasets="[scatterData]" :options="scatterOptions" @plotly_click="scatterClick($event)"
                 style="width:100%;height:600px;" />
@@ -204,8 +225,9 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
         </div>
     </div>
 
-    <div class="my-5">
-        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat" :disabled="correlationsLoading"/>
+    <div class="my-5" v-show="max > min">
+        <Slider v-model="sliderPositionsRaw" :min="min" :max="max" :lazy="false" :format="sliderFormat"
+            :disabled="correlationsLoading" />
     </div>
 
     <InfoBox class="mt-3">
@@ -220,7 +242,8 @@ function scatterClick(data: Plotly.PlotMouseEvent) {
             <li>Right clicking a gene point in the scatterplot will open up the gene in the UCSC genome browser. Select
                 either
                 the hg38 or the mm10 database at the top to enable this functionality.</li>
-            <li>Underneath the heatmap is a slider to filter read lengths. While new data is loading, the read length slider is disabled.</li>
+            <li>Underneath the heatmap is a slider to filter read lengths. While new data is loading, the read length slider
+                is disabled.</li>
         </ul>
     </InfoBox>
 </template>

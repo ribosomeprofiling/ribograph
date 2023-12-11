@@ -23,7 +23,7 @@ import ribopy
 from ribopy import Ribo
 from ribopy.core.get_gadgets import get_region_boundaries, get_reference_names
 import time
-
+from enum import Enum
 
 def camelCase(st: str):
     """
@@ -286,6 +286,11 @@ def list_experiments(ribo, experiment: Experiment, request, *args, **kwargs):
     }
 
 
+class GeneCorrelationMode(Enum):
+    RIBO_ONLY = 0
+    RNA_SEQ_ONLY = 1
+    RIBO_RNA_SEQ = 2
+
 @register_project_api
 def get_gene_correlations(project: Project, request, *args, **kwargs):
 
@@ -296,8 +301,8 @@ def get_gene_correlations(project: Project, request, *args, **kwargs):
         )
     range_lower = int(request.GET.get("range_lower"))
     range_upper = int(request.GET.get("range_upper"))
-
-    data = gene_correlation_helper(project, reference_hash, range_lower, range_upper)
+    mode = int(request.GET.get("mode"))
+    data = gene_correlation_helper(project, reference_hash, range_lower, range_upper, mode)
 
     if not data:
         return HttpResponse(status=400)
@@ -323,7 +328,7 @@ def get_gene_correlations(project: Project, request, *args, **kwargs):
 
 @lru_cache()
 def gene_correlation_helper(
-    project: Project, referenceHash: str, range_lower, range_upper
+    project: Project, referenceHash: str, range_lower, range_upper, mode: int
 ):
 
     # get a list of all experiment aliases in the study
@@ -348,23 +353,42 @@ def gene_correlation_helper(
     region_counts = []
     min_range_min = 1000
     max_range_max = -1
-    for name, ribo in ribo_objects.items():
-        df = get_region_counts_helper(ribo)
-        if name in df and df is not None:
-            print("filtering read lengths...")
-            # print(df.index)
-            df["read_lengths"] = [x[1] for x in df.index]
-            df = df[(df["read_lengths"] >= (range_lower or ribo.minimum_length))]
-            df = df[df["read_lengths"] <= (range_upper or ribo.maximum_length)]
-            summed_counts = df.groupby(["transcript"]).sum().get(name, None)
-            if summed_counts is not None:
-                region_counts.append(summed_counts)
-        
-        if ribo.minimum_length < min_range_min:
-            min_range_min = ribo.minimum_length
 
-        if ribo.maximum_length > max_range_max:
-            max_range_max = ribo.maximum_length
+    print(mode, GeneCorrelationMode.RNA_SEQ_ONLY.value)
+
+    if mode != GeneCorrelationMode.RNA_SEQ_ONLY.value:
+        for name, ribo in ribo_objects.items():
+            df = get_region_counts_helper(ribo)
+            if name in df and df is not None:
+                print("filtering read lengths...")
+                # print(df.index)
+                df["read_lengths"] = [x[1] for x in df.index]
+                df = df[(df["read_lengths"] >= (range_lower or ribo.minimum_length))]
+                df = df[df["read_lengths"] <= (range_upper or ribo.maximum_length)]
+                summed_counts = df.groupby(["transcript"]).sum().get(name, None)
+                if summed_counts is not None:
+                    region_counts.append(summed_counts)
+            
+            if ribo.minimum_length < min_range_min:
+                min_range_min = ribo.minimum_length
+
+            if ribo.maximum_length > max_range_max:
+                max_range_max = ribo.maximum_length
+    
+    if mode != GeneCorrelationMode.RIBO_ONLY.value:
+        # get rna-seq counts for each ribo object
+        for name, ribo in ribo_objects.items():
+            rnaseq_data = get_rnaseq_counts_helper(ribo)
+            data = rnaseq_data.loc[name]['CDS']
+            if ribo.alias:
+                data.index = list(map((ribopy.api.alias.apris_human_alias), ribo.transcript_names.tolist()))
+            
+            if mode == GeneCorrelationMode.RIBO_RNA_SEQ.value:
+                data.name = name + "-rna"
+            else:
+                data.name = name    
+                
+            region_counts.append(data)
 
     # get correlation coefficients for the heatmap
     correlations = generate_correlations(region_counts)
@@ -397,6 +421,12 @@ def get_region_counts_helper(ribo):
         alias=(ribo.alias != None),
         sum_lengths=False,
     )
+
+
+@cached(cache=TTLCache(maxsize=128, ttl=600), key=region_counts_helper_key)
+def get_rnaseq_counts_helper(ribo):
+    return ribo.get_rnaseq()
+
 
 
 def generate_correlations(region_counts):

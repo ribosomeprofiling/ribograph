@@ -82,9 +82,9 @@ export const getExperimentList = (experiment_id: number) => (
         `/api/experiment/${experiment_id}/listExperiments`)
 )
 
-export const getGeneCorrelations = (project_id: number, referenceHash: string, range_lower: number, range_upper: number) => (
+export const getGeneCorrelations = (project_id: number, referenceHash: string, range_lower: number, range_upper: number, mode: number) => (
     handleAPICall(`Loading gene correlations`,
-        `/api/project/${project_id}/getGeneCorrelations?referenceHash=${referenceHash}&range_lower=${range_lower}&range_upper=${range_upper}`)
+        `/api/project/${project_id}/getGeneCorrelations?referenceHash=${referenceHash}&range_lower=${range_lower}&range_upper=${range_upper}&mode=${mode}`)
 )
 /////////////////////////
 /// CHART UTILITIES
