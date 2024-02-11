@@ -58,6 +58,9 @@ Once the container is ready, you can run the container.
 ```
 docker compose -f docker-compose_local.yml up
 ```
+
+By default, RiboGraph will store the ribo files under the current working directory under the folder named `ribo_folder`.
+
 Note you might run into issues on Windows when attempting to start the container due to Windows CRLF style line endings. Change the line endings for the .sh and .yml files in the Docker and Docker/web directory from CRLF to LF to fix these.
 
 We recommend using <a href="https://www.mozilla.org/">Firefox</a> for Ribograph. <a href="https://www.mozilla.org/">
