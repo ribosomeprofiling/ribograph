@@ -67,7 +67,7 @@ We recommend using <a href="https://www.mozilla.org/">Firefox</a> for Ribograph.
 <img width="5%" src="/docs/Firefox_logo,_2019.svg" alt="Firefox"></a>
 
 On your browser, go to the URL: [http://localhost:8000/](http://localhost:8000/). 
-If the container is built succesfully, you should see a welcome prompt asking you to create a username and password.
+If the container is built successfully, you should see a welcome prompt asking you to create a username and password.
 
 ![Welcome Screen](/docs/screenshots/welcome.jpg?raw=true)
  
@@ -124,7 +124,7 @@ You can adjust the offset of each footprint length. Then you can save the offset
 
 ### Adding References
 
-To be able to view nucelotide sequences in the coverage plot, you need to associate the experiment with a reference.
+To be able to view nucleotide sequences in the coverage plot, you need to associate the experiment with a reference.
 
 ![Reference Page](/docs/screenshots/reference_page.jpg?raw=true)
 
@@ -143,7 +143,7 @@ Click on the "Sequence" to view the nucleotide sequences.
 
 ### More Files
 
-You can find additional ribo files and references in the following Github repository:
+You can find additional ribo files and references in the following GitHub repository:
 [https://github.com/ribosomeprofiling/ribograph_sampledata](https://github.com/ribosomeprofiling/ribograph_sampledata).
 
 ## Reference Compatibility
@@ -185,13 +185,21 @@ djlint . --reformat
 
 
 ### References
-When a ribo file is uploaded, a hash sum is computed for the transcript names and their corresponding lengths. More precisely, the transcript names and their lengths are concatanated and and a single md5 sum of the entire string is computed. This value is used to compare two experiments to conclude whether they have the same transcriptome refrence or not.
+When a ribo file is uploaded, a hash sum is computed for the transcript names and their corresponding lengths. More precisely, the transcript names and their lengths are concatenated and a single md5 sum of the entire string is computed. This value is used to compare two experiments to conclude whether they have the same transcriptome reference or not.
 
-When  there is an attempt of matching an experiment with a reference, transcript names and lengths are compared one-by-one and if the first mismatch is reported. This way users can clearly see why their refernce does not match that of the experiment.
+When  there is an attempt of matching an experiment with a reference, transcript names and lengths are compared one-by-one and if the first mismatch is reported. This way users can clearly see why their reference does not match that of the experiment.
 
 ## Implementation Notes
 RiboGraph is implemented as a Django web app that uses Vue supplementally to provide reactivity on the front-end. During development, both the Django dev server and the hot reloading Vue dev server are run in parallel. During production, the Vue files are built into static assets that are served through Django. This logic is implemented in the [vue_app](ribograph/browser/templates/browser/vue_app.html) Django template.
+
+Since most users of RiboGraph locally will not be developing
  
 ### Django HTTPS API
-The Vue app interfaces with the Django backend through [a series of HTTPS APIs](ribograph/browser/api.py). These APIs provide the front-end with the data required to render the charts. Results are cached for around 10 minutes for faster results and a smoother user experience.
- 
+The Vue app interfaces with the Django backend through [an HTTP API](ribograph/browser/api.py) defined in [api.py](ribograph/browser/api.py). 
+This API provides the front-end with the data required to render charts. Generally, each chart pulls its data from
+a different endpoint, so that visualizations can be shown to the user as soon as the appropriate data is ready.
+
+Functions that define endpoints are decorated with either `@register_experiment_api` or `@register_project_api`, which takes
+care of registering the URL (by default, the function's name), serializing responses as JSON, and caching 
+results for around 10 minutes for faster results and a smoother user experience. Documentation for these API endpoints 
+can be found in the docstring for the respective function. Most APIs pull data from a single experiment, such as metagene counts or coverage data, but some APIs pull data from multiple experiments, like the gene correlation analysis. 
