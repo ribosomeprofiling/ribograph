@@ -190,9 +190,9 @@ When a ribo file is uploaded, a hash sum is computed for the transcript names an
 When  there is an attempt of matching an experiment with a reference, transcript names and lengths are compared one-by-one and if the first mismatch is reported. This way users can clearly see why their reference does not match that of the experiment.
 
 ## Implementation Notes
-RiboGraph is implemented as a Django web app that uses Vue supplementally to provide reactivity on the front-end. During development, both the Django dev server and the hot reloading Vue dev server are run in parallel. During production, the Vue files are built into static assets that are served through Django. This logic is implemented in the [vue_app](ribograph/browser/templates/browser/vue_app.html) Django template.
+RiboGraph is implemented as a Django web app that uses Vue supplementally to provide reactivity on the front-end. During development (when running [docker-compose_local_dev.yml](Docker/docker-compose_local_dev.yml)), both the Django dev server and the hot reloading Vue dev server are run in parallel.
 
-Since most users of RiboGraph locally will not be developing
+Since most users of RiboGraph will not be developing it, the [docker-compose_local.yml](Docker/docker-compose_local.yml) file will build the Vue project into static assets that are served through Django. This logic is implemented in the [vue_app](ribograph/browser/templates/browser/vue_app.html) Django template. Because of this, the Vue dev server will not need to be started, which will save system resources.
  
 ### Django HTTPS API
 The Vue app interfaces with the Django backend through [an HTTP API](ribograph/browser/api.py) defined in [api.py](ribograph/browser/api.py). 

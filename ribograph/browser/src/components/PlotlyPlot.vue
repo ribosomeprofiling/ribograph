@@ -13,7 +13,7 @@ const plot = ref<Plotly.PlotlyHTMLElement | null>(null);
 onMounted(() => {
     if (plot.value) {
         Plotly.newPlot(plot.value, props.datasets, props.options, {
-            responsive: true, scrollZoom: true, displaylogo: false
+            responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d']
         });
 
         plot.value.on('plotly_click', e => emit('plotly_click', e))
