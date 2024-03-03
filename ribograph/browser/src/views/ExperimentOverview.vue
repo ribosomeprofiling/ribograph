@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const normalize = ref(false)
-const { sliderPositionsRaw, sliderPositions } = sliderLogic()
+const { sliderPositionsRaw, sliderPositions } = sliderLogic(500)
 
 const min = ref(15)
 const max = ref(40)

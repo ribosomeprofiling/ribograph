@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const normalize = ref(false)
-const { sliderPositionsRaw, sliderPositions } = sliderLogic()
+const { sliderPositionsRaw, sliderPositions } = sliderLogic(500)
 
 const min = ref(15)
 const max = ref(40)
@@ -123,8 +123,11 @@ const autoInitializedValues = computed(() => {
     <div class="row">
         <div class="col-md-auto" style="width:200px">
             <!-- The offset inputs -->
+            <p class="mb-0"><b>Adjust Offsets</b></p>
+            <p class="mb-1 col-form-label-sm"><i>(per read length)</i></p>
+
             <div class="form-group row mb-0" v-for="(x, i) in offsets" :key="'input' + i">
-                <label :for="'offsetcontrol' + i" class="col-sm-1 col-form-label-sm p-0">{{ min + i }}</label>
+                <label :for="'offsetcontrol' + i" class="col-sm-2 col-form-label-sm">{{ min + i }}nt</label>
                 <div class="col">
                     <input type="number" v-model.number="offsets[i]" @focusin="focusPoint = i" @focusout="focusPoint = null"
                         class="form-control form-control-sm" :id="'offsetcontrol' + i">
