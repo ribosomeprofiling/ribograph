@@ -276,7 +276,7 @@ export class DataArray2D extends DataArray<Array<number>>{
  * Returns sliderPositionsRaw, which can be directly connected to a vue-slider component,
  * and sliderPositions, a debounced version that can be hooked up to data intensive computed properties
  */
-export function sliderLogic(throttleDuration = 2000) {
+export function sliderLogic(throttleDuration = 1000) {
     // TODO don't hardcode slider min and max
     const sliderPositionsRaw = ref([15, 40] as [number, number]) // slider positions as a tuple
     const sliderPositions = ref(sliderPositionsRaw.value)

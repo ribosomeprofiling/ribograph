@@ -125,7 +125,7 @@ const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
     }
 
     if (geneSequenceLabels.value) {
-        geneData.unshift(geneSequenceLabels.value) // add gene labels to begning of array
+        geneData.unshift(geneSequenceLabels.value) // add gene labels to beginning of array
     }
 
     return geneData
@@ -133,7 +133,7 @@ const datasets = computed<Partial<Plotly.PlotData>[]>(() => {
 
 const options = computed<Partial<Plotly.Layout>>(() => ({
     title: {
-        text: props.gene,
+        text: `${props.gene} (${sliderPositions.value[0]}-${sliderPositions.value[1]}nt)`,
         y: 0.95,
         yanchor: 'top'
     },
